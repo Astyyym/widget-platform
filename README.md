@@ -3,7 +3,7 @@
 Windows 本地桌面信息与快捷交互工具（Tauri 2 + TypeScript/Rust）。常驻低占用、内容可自定义、无需 WSL2；当前为 `0.1.0` 本机自用候选，未做代码签名。
 
 - 仓库：<https://github.com/Astyyym/widget-platform>
-- 安装包：[Releases](https://github.com/Astyyym/widget-platform/releases)（`Widget Platform_0.1.0_x64-setup.exe`，currentUser / x64 / 未签名）
+- 安装包：[Releases](https://github.com/Astyyym/widget-platform/releases)（`Widget.Platform_0.1.0_x64-setup.exe`，currentUser / x64 / 未签名）
 - 源码：`app/`（正式产品）、`prototypes/`（Goal 1 参考原型，非产品入口）、`icon/`、`designs/`
 
 > **关于 `evidence/`**：本项目的过程证据（测试日志、截图、构建产物、隔离运行 profile）体积达数十 GB，且含本机 WebView2 用户数据，因此**不随仓库分发**，只保留在开发机本地。本文件及 `task_plan.md`、`findings.md` 中指向 `evidence/...` 的链接在 GitHub 上不会解析，对应内容请以本地工作区为准。

@@ -1,6 +1,22 @@
 # 当前任务与 Goal 状态
 
-## 当前执行：天气折线图 / 媒体预览 / 定位反查（2026-10-05）
+## 当前执行：首次公开发布（2026-10-06）
+
+状态：**completed（首次推送 + Release v0.1.0 已发布并复核）；真实桌面体验 E5 与未验证项边界不变。**
+
+哥哥要求「推到 GitHub 上，同步更新 release」。执行前确认：根 Git 为 `main` 且**无任何 commit**，GitHub 上也不存在本项目仓库，因此这是首次发布而非增量同步。
+
+实际：
+- 仓库 `Astyyym/widget-platform`（public），首个 commit `d40f23c`，457 files / 17.5 MB，`main` 已跟踪 `origin/main`。
+- 发布前审计发现原 `.gitignore` 会让约 34 GB 内容进入提交，其中 `prototypes/*/.runtime*` 的 WebView2 profile 含 `Login Data`/`Cookies`/`Session Storage`。已扩展忽略规则（`evidence/`、`app/evidence/`、`**/.runtime*/`、`*.tgz`、`*.pma`、`*.hyb`、`*.nvph`、`*.dat`、`__pycache__/`、`*.pyc`），推送后按远端 tree 复核 457 blobs、可疑路径 0。
+- Release `v0.1.0` 资产 `Widget.Platform_0.1.0_x64-setup.exe`（GitHub 将空格改写为 `.`），4,471,581 B。下载回本地复算 SHA-256 `0bc1a3d7f11f374b585e7f0a0ea7c76ba54b734ebd0f2d138cac43157165e3c4`，与本地交付副本逐字节一致。
+- 范围外未做：未自动安装、未改动系统 PATH、未新增隐私访问、未发布 raw EXE。
+
+未验证（与发布前一致，不因发布改写）：多屏/混合 DPI、24h 常驻、跨版本升级、Codex 长时额度、正式安装 E5。
+
+详见 [发布记录](evidence/publish-20261006/result.md)。
+
+## 历史执行：天气折线图 / 媒体预览 / 定位反查（2026-10-05）
 
 状态：**completed（实现 + 回归 + release EXE 打包）；真实桌面视觉由哥哥目视确认。**
 
