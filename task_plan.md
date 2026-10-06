@@ -2,17 +2,20 @@
 
 ## 当前执行：工作区体积治理（2026-10-06）
 
-状态：**进行中（第三项已完成：清理脚本 + AGENTS 规则）；第一、二项待哥哥决策。**
+状态：**completed（第三项清理脚本 + 第一档回收已执行，释放 75.38 GB）。**
 
-哥哥提出项目文件夹是否臃肿。审计结论：项目 71.8 GB / 196,039 文件，可再生构建产物 68.51 GB。根因是每张任务卡各建隔离 Cargo target，`evidence/` 下同时存在 23 个 cargo-target/target-final，把 Tauri 依赖树重复编译 23 遍（45.2GB）；`app/src-tauri/target` 另占 25.1GB。
+哥哥提出项目文件夹是否臃肿。审计结论：项目 71.8 GB / 196,039 文件，可再生构建产物 75.38 GB（按 clean-build 口径，含 `app/src-tauri/target`）。根因是每张任务卡各建隔离 Cargo target，`evidence/` 下同时存在 23 个 cargo-target/target-final，把 Tauri 依赖树重复编译 23 遍。
 
-已完成（第三项，不删任何文件）：
-- 新增 `scripts/clean-build.ps1`：白名单回收可再生目录，默认 dry-run，`-Apply` 才删；强制保留 `prototypes/**/.tools`、`evidence/**/delivery`、证据文本、`research/`；不跟随目录联接、拒绝越界路径、删后复核。
-- dry-run 实测：识别 127 个目标 / 80.17 GB（含 `app/evidence` 4.9GB、`prototypes` 构建输出），保护项命中 0（`delivery`/`.tools`/`research`/`.md`/`.exe`/`src` 全部未进列表），确认未删除任何内容。
-- `AGENTS.md` 新增「构建缓存与隔离验证的target」规则（隔离验证复用 `app/src-tauri/target`、共用缓存目录、回收工具、交付包保留）与「脚本编码」规则（`scripts/*.ps1` 保持 ASCII）；并修正已过时的「根目录目前不是Git仓库」表述。
-- findings 记录 F-114（体积审计与根因）、F-115（本机无全局 Rust 工具链，`.tools` 不可删）、F-116（PowerShell 5.1 编码与 List 解包陷阱）。
+实际执行：
+- 新增 `scripts/clean-build.ps1`：白名单回收可再生目录，默认 dry-run，`-Apply` 才删；强制保留 `prototypes/**/.tools`、`evidence/**/delivery`、证据文本、`research/`；不跟随目录联接、拒绝越界路径、删后复核；支持 `-SafestOnly`（跳过全部 Cargo target 树）。
+- **发现并抢救唯一交付物**：F6、F7 安装包只存在于各自 `cargo-target` 内，两卡均无 `delivery/`。已复制到 `evidence/G8-C-F6/delivery/`（SHA `56e80749…1358b0`）与 `evidence/G8-C-F7/delivery/`（SHA `06acad69…f427b38`），逐字节复核一致。据此在脚本内加入**哈希级唯一性保护**：回收 target 树前检查其中每个安装包内容是否在树外存在，不存在则 STOP（exit 2）。按文件名判断不足，因为各卡安装包同名但内容不同。
+- `-Apply` 实测：**126/126 目录删除成功，释放 75.38 GB**，删后复核 0 残留。
+- 结果：项目 **71.8 GB → 3.8 GB**；`app/` 2.9M、`evidence/` 664M、`prototypes/` 3.0G（主要是保留的 `.tools` 2.87G）、`research/` 61M。D 盘已用由 414G 降至 346G。
+- 保留项逐项复核通过：`.tools` 工具链、`app/run-msvc-rust.cmd`、源码、8 个交付安装包、`app/evidence/G3-B/todo-e2-result.json`、139 个证据 md、`research/验证记录.md`。`run-msvc-rust.cmd cargo --version` 返回 `cargo 1.98.1`，工具链仍可用。git 工作区干净（源码零改动）。
+- `AGENTS.md` 新增「构建缓存与隔离验证的 target」规则（隔离验证复用 `app/src-tauri/target`、共用缓存目录、回收工具、交付包保留）与「脚本编码」规则（`scripts/*.ps1` 保持 ASCII）；并修正已过时的「根目录目前不是Git仓库」表述。
+- findings 记录 F-114（体积审计与根因）、F-115（本机无全局 Rust 工具链，`.tools` 不可删）、F-116（PowerShell 5.1 编码与 List 解包、Write-Output 优先级陷阱）、F-117（唯一交付物陷阱与哈希级保护）。
 
-待决策：①第一档 68.51GB 是否执行回收；②`prototypes/` 去除构建输出后的约 2.8GB 源码保留/归档/删除。
+未执行：`prototypes/` 源码（wpf-shell/zebar）去留未决，本轮保留。
 
 ## 历史执行：首次公开发布（2026-10-06）
 
