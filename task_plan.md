@@ -1,6 +1,20 @@
 # 当前任务与 Goal 状态
 
-## 当前执行：首次公开发布（2026-10-06）
+## 当前执行：工作区体积治理（2026-10-06）
+
+状态：**进行中（第三项已完成：清理脚本 + AGENTS 规则）；第一、二项待哥哥决策。**
+
+哥哥提出项目文件夹是否臃肿。审计结论：项目 71.8 GB / 196,039 文件，可再生构建产物 68.51 GB。根因是每张任务卡各建隔离 Cargo target，`evidence/` 下同时存在 23 个 cargo-target/target-final，把 Tauri 依赖树重复编译 23 遍（45.2GB）；`app/src-tauri/target` 另占 25.1GB。
+
+已完成（第三项，不删任何文件）：
+- 新增 `scripts/clean-build.ps1`：白名单回收可再生目录，默认 dry-run，`-Apply` 才删；强制保留 `prototypes/**/.tools`、`evidence/**/delivery`、证据文本、`research/`；不跟随目录联接、拒绝越界路径、删后复核。
+- dry-run 实测：识别 127 个目标 / 80.17 GB（含 `app/evidence` 4.9GB、`prototypes` 构建输出），保护项命中 0（`delivery`/`.tools`/`research`/`.md`/`.exe`/`src` 全部未进列表），确认未删除任何内容。
+- `AGENTS.md` 新增「构建缓存与隔离验证的target」规则（隔离验证复用 `app/src-tauri/target`、共用缓存目录、回收工具、交付包保留）与「脚本编码」规则（`scripts/*.ps1` 保持 ASCII）；并修正已过时的「根目录目前不是Git仓库」表述。
+- findings 记录 F-114（体积审计与根因）、F-115（本机无全局 Rust 工具链，`.tools` 不可删）、F-116（PowerShell 5.1 编码与 List 解包陷阱）。
+
+待决策：①第一档 68.51GB 是否执行回收；②`prototypes/` 去除构建输出后的约 2.8GB 源码保留/归档/删除。
+
+## 历史执行：首次公开发布（2026-10-06）
 
 状态：**completed（首次推送 + Release v0.1.0 已发布并复核）；真实桌面体验 E5 与未验证项边界不变。**
 

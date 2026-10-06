@@ -28,11 +28,21 @@
 
 ## 工作区与环境
 
-根目录目前不是Git仓库，研究副本各自可能有.git。先确认边界，不能误把产品写进第三方仓库。仅在后续开发启动且G0-B执行时初始化根Git，忽略research中的源码副本、依赖、制品、私密数据；不自动提交/推送。
+根目录是Git仓库（`main`），已推送到公开仓库 `Astyyym/widget-platform`；research 内第三方源码副本各自带.git 且由根忽略。先确认边界，不能误把产品写进第三方仓库。忽略research中的源码副本、依赖、制品、私密数据；不自动提交/推送，提交与推送按用户明确指令执行。
 
 不覆盖用户未提交改动；不做reset --hard、无范围clean、删除数据目录。依赖安装遵守锁文件；新增依赖记录必要性。工具缺失先查已配置位置/环境，不因PATH缺项直接断言未安装或全局重装。
 
+**构建缓存与隔离验证的target。** 本项目曾因每张任务卡各建一个隔离 Cargo target，把 Tauri 依赖树重复编译了 23 遍，`evidence/**/cargo-target*` 累积约 45GB，全工作区可再生产物一度达 68GB。规则：
+
+- 隔离验证**复用 `app/src-tauri/target`**，不按任务卡新建 target 目录。需要与正式构建区分时，用 `--features`、不同 bundle identifier 或独立 `WEBVIEW2_USER_DATA_FOLDER`/profile 目录隔离，而不是复制整棵依赖树。
+- 确需独立 target 时，指向**一个共用的缓存目录**（如 `evidence/.shared-target/<purpose>`），并在任务收口时回收；不得在每张卡下各留一份。
+- 隔离验证产生的 WebView2 profile/`AppData` 目录属于本机用户数据（含 cookie），只放 `evidence/**`，随任务回收，不得提交。
+- 回收用 `scripts/clean-build.ps1`（默认 dry-run，`-Apply` 才删除）。该脚本只删白名单内的可再生目录，**强制保留** `prototypes/**/.tools`（本机唯一 Rust 1.98.1 MSVC 工具链，系统无全局 rustup）、`evidence/**/delivery` 安装包、全部证据文本与 `research/`。不要用自写通配删除命令绕过它。
+- 交付安装包（`delivery/*.exe`）是唯一副本时不得回收；确认已上传到 Release 后再考虑。
+
 PowerShell运行后台helper用隐藏窗口；不把变量拼成跨shell删除命令。清理仅限确认位于本任务输出目录的生成物。无须清理时不清理。
+
+**脚本编码。** `scripts/*.ps1` 一律用 ASCII（与现有脚本一致）。Windows PowerShell 5.1 对无 BOM 的 UTF-8 文件按系统 ANSI 代码页解析，脚本内中文会破坏词法分析并报 `UnexpectedToken`；需要中文说明时写进 Markdown 文档而非脚本注释。带中文的脚本必须先确认执行器的编码假设。
 
 ## 验证与状态
 
