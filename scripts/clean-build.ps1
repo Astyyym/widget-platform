@@ -40,11 +40,19 @@
 .EXAMPLE
     powershell.exe -NoProfile -File scripts/clean-build.ps1 -Apply
     Reclaim regenerable build artifacts.
+
+.EXAMPLE
+    powershell.exe -NoProfile -File scripts/clean-build.ps1 -SafestOnly -Apply
+    Reclaim only the tiers that cannot possibly hold a unique artifact:
+    WebView2 profiles, __pycache__, WPF obj/bin, node_modules and
+    release-notices. Cargo target trees are skipped because they can contain
+    the only copy of a built installer.
 #>
 [CmdletBinding()]
 param(
     [switch]$Apply,
-    [switch]$IncludePrototypeSource
+    [switch]$IncludePrototypeSource,
+    [switch]$SafestOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,7 +82,14 @@ function Test-Protected {
 
 # ---------------------------------------------------------------------------
 # Whitelist: directory names that are regenerable build output.
+#
+# Cargo target trees (target/, target-final/, cargo-target*) are regenerable in
+# principle, but a task that built an installer inside its own isolated target
+# may have left the ONLY copy of that installer there. Always rescue such
+# artifacts into evidence/<task>/delivery/ before reclaiming a target tree, or
+# pass -SafestOnly to skip them entirely.
 # ---------------------------------------------------------------------------
+$targetTreeNames = @('target', 'target-final', 'cargo-target')
 $regenerableDirectoryNames = @(
     'target', 'target-final',
     'cargo-target',
@@ -126,6 +141,20 @@ function Get-RegenerableDirectory {
             if ($child.Name -in $regenerableDirectoryNames) { $isTarget = $true }
             elseif ($child.Name -like 'cargo-target*') { $isTarget = $true }
             elseif ($child.Name -like 'target-*' -and $child.Name -ne 'target-final') { $isTarget = $true }
+
+            # -SafestOnly: never touch a Cargo target tree. A task's isolated
+            # target can hold the only copy of an installer it produced.
+            if ($SafestOnly -and $isTarget) {
+                $isTargetTree = $false
+                foreach ($treeName in $targetTreeNames) {
+                    if ($child.Name -eq $treeName -or $child.Name -like "$treeName-*" `
+                        -or $child.Name -like "$treeName*") {
+                        $isTargetTree = $true
+                        break
+                    }
+                }
+                if ($isTargetTree) { continue }
+            }
 
             if ($isTarget -and -not (Test-Protected -RelativePath $relative)) {
                 $found.Add([pscustomobject]@{
@@ -191,6 +220,66 @@ foreach ($target in $targets) {
 
 $report = $report | Sort-Object Bytes -Descending
 
+# ---------------------------------------------------------------------------
+# Safety net: refuse to reclaim a Cargo target tree that still holds an
+# installer whose CONTENT exists nowhere outside that tree.
+#
+# Comparing file names is not enough: every task's build produces the same
+# installer name ("Widget Platform_0.1.0_x64-setup.exe") with different bytes,
+# so a name check would happily discard a build that exists nowhere else.
+# Compare SHA-256 instead, limited to plausible installers (setup/msi/nupkg,
+# > 1 MB) so Cargo build-script executables are not hashed.
+# ---------------------------------------------------------------------------
+function Get-InstallerHash {
+    param([Parameter(Mandatory)][string[]]$Paths)
+    $map = @{}
+    foreach ($p in $Paths) {
+        try {
+            $hash = (Get-FileHash -LiteralPath $p -Algorithm SHA256 -ErrorAction Stop).Hash
+        }
+        catch { continue }
+        if (-not $map.ContainsKey($hash)) { $map[$hash] = @() }
+        $map[$hash] += $p
+    }
+    return $map
+}
+
+$installerCandidates = @(Get-ChildItem -LiteralPath $workspaceRoot -Recurse -File -Force `
+    -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Length -gt 1MB -and (
+            $_.Name -like '*-setup.exe' -or $_.Name -like '*.msi' -or
+            $_.Name -like '*.nupkg' -or $_.Name -like '*setup*.exe')
+    })
+$hashOwners = Get-InstallerHash -Paths @($installerCandidates | ForEach-Object { $_.FullName })
+
+$blocked = [System.Collections.Generic.List[string]]::new()
+
+foreach ($item in $report) {
+    $isTargetTree = $false
+    foreach ($treeName in $targetTreeNames) {
+        if ($item.Relative -match "\\$treeName(\\|$)" -or $item.Relative -match "\\$treeName-") {
+            $isTargetTree = $true
+            break
+        }
+    }
+    if (-not $isTargetTree) { continue }
+
+    $prefix = $item.Relative + '\'
+    foreach ($candidate in $installerCandidates) {
+        $rel = $candidate.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/')
+        if (-not $rel.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) { continue }
+        $hash = (Get-FileHash -LiteralPath $candidate.FullName -Algorithm SHA256).Hash
+        $outside = @($hashOwners[$hash] | Where-Object {
+            -not $_.Substring($workspaceRoot.Length).TrimStart('\', '/').StartsWith(
+                $prefix, [System.StringComparison]::OrdinalIgnoreCase)
+        })
+        if ($outside.Count -eq 0) {
+            $blocked.Add("$($item.Relative)  ->  unique content '$($candidate.Name)' sha256=$($hash.Substring(0,12))")
+        }
+    }
+}
+
 Write-Output ''
 Write-Output ('=' * 78)
 if ($Apply) {
@@ -211,7 +300,20 @@ if ($IncludePrototypeSource) {
 else {
     Write-Output '  Kept: prototypes/**/.tools (only local Rust/MSVC toolchain), evidence/**/delivery installers, all evidence text.'
 }
+if ($SafestOnly) {
+    Write-Output '  -SafestOnly: Cargo target trees excluded (they can hold a unique installer).'
+}
 Write-Output ''
+
+if ($blocked.Count -gt 0) {
+    Write-Output ('=' * 78)
+    Write-Output 'STOP: these Cargo target trees hold an installer with no copy outside them.'
+    Write-Output 'Copy the artifact into evidence/<task>/delivery/ first, then re-run.'
+    Write-Output ('=' * 78)
+    foreach ($entry in $blocked) { Write-Output "  $entry" }
+    Write-Output ''
+    exit 2
+}
 
 if (-not $Apply) {
     Write-Output 'DRY-RUN finished, nothing deleted. Re-run with -Apply to reclaim.'
