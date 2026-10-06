@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget Platform · 输入面板</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./widget-api.js"></script>
+  </head>
+  <body data-mode="input-panel">
+    <main class="widget panel" aria-label="合成输入面板">
+      <header class="summary">
+        <div>
+          <p class="eyebrow">WIDGET PLATFORM · 键盘输入对照</p>
+          <h1>临时输入</h1>
+        </div>
+        <button id="hide-panel" class="secondary" type="button">隐藏面板</button>
+      </header>
+      <section class="input-panel">
+        <label for="sample-input">只在当前窗口内存中保留</label>
+        <input id="sample-input" type="text" value="合成输入样例" autocomplete="off" autofocus />
+        <p id="input-preview" class="preview" aria-live="polite">合成输入样例</p>
+      </section>
+    </main>
+  </body>
+</html>

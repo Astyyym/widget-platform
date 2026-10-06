@@ -1,0 +1,64 @@
+# Third-party reference repositories. Keep their own Git metadata and sources intact.
+research/codenotch/
+research/pillar/
+research/zebar/
+
+# Dependencies and build output
+**/node_modules/
+**/target/
+**/bin/
+**/obj/
+**/dist/
+**/build/
+
+# Task-owned isolated Cargo output; not source or review evidence.
+evidence/G8-C-F5/cargo-target/
+
+# Generated third-party notice payloads; regenerated from locks by release.ps1.
+app/src-tauri/release-notices/
+
+# Packaged binaries and installers
+*.exe
+*.msi
+*.msix
+*.appx
+*.appxbundle
+*.nupkg
+
+# Local private test data
+tests/private-data/
+tests/private-data-*/
+evidence/**/private/
+evidence/**/private-*/
+evidence/**/profile/
+evidence/**/final-profile/
+
+# Local credentials and signing containers
+.env
+.env.local
+.env.*.local
+*.pfx
+*.p12
+*.jks
+
+# Local-only verification evidence: build output, isolated app profiles and
+# WebView2 user data (cookies/logins). Never publish; keep on the dev machine.
+evidence/
+app/evidence/
+
+# Runtime scratch/profile dirs written by the prototype harnesses.
+**/.runtime/
+**/.runtime-profile/
+**/.runtime-*/
+
+# Vendored package tarballs and WebView2/Chromium profile artifacts.
+*.tgz
+*.pma
+*.hyb
+*.nvph
+*.dat
+
+# Python bytecode caches from the release helper scripts.
+__pycache__/
+*.pyc
+

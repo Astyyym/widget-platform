@@ -1,0 +1,169 @@
+.clipboard-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.clipboard-panel header {
+  margin-bottom: 2px;
+}
+
+.clipboard-empty p,
+.clipboard-entry-meta,
+.clipboard-footer {
+  color: var(--shell-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.clipboard-entry-actions button,
+.clipboard-footer button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--shell-line);
+  border-radius: 8px;
+  color: var(--shell-text);
+  background: var(--shell-surface);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.clipboard-entry-actions button:disabled,
+.clipboard-footer button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.clipboard-error {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #d78a80;
+  border-radius: 9px;
+  color: #6d211c;
+  background: #fff1ef;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.clipboard-empty {
+  display: grid;
+  gap: 5px;
+  padding: 20px 12px;
+  border: 1px dashed var(--shell-line);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.clipboard-empty strong {
+  color: var(--shell-text);
+  font-size: 13px;
+}
+
+.clipboard-empty p {
+  margin: 0;
+}
+
+.clipboard-list {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.clipboard-entry {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--shell-line);
+  border-radius: 10px;
+  background: var(--shell-surface-raised);
+}
+
+.clipboard-entry p {
+  margin: 0;
+  display: -webkit-box;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  color: var(--shell-text);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: pre-wrap;
+}
+
+.clipboard-entry-meta,
+.clipboard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.clipboard-entry-meta > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clipboard-entry-actions,
+.clipboard-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.clipboard-entry-actions button {
+  min-height: 26px;
+  min-width: 48px;
+  padding-inline: 7px;
+}
+
+.clipboard-footer {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 30px;
+  align-items: center;
+}
+
+.clipboard-history-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border: 1px solid var(--shell-line);
+  border-radius: 8px;
+  color: var(--shell-text);
+  background: var(--shell-surface);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Override the shell footer's default status-dot rule for this text control. */
+.shell-activity-panel .clipboard-footer .clipboard-history-count {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 30px;
+  border-radius: 8px;
+  background: var(--shell-surface);
+}
+
+.clipboard-pagination {
+  margin-left: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .clipboard-error {
+    border-color: #8e4e48;
+    color: #ffe2dd;
+    background: #452522;
+  }
+}

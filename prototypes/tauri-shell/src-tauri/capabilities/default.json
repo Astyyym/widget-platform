@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "Size and focus the prototype's single window for panel editing.",
+  "windows": ["main"],
+  "permissions": [
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-position",
+    "core:window:allow-inner-size",
+    "core:window:allow-outer-size",
+    "core:window:allow-available-monitors",
+    "core:window:allow-current-monitor",
+    "core:window:allow-primary-monitor",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
+}

@@ -1,0 +1,1897 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" class="is-initializing">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Widget Platform · Three-level UI Preview</title>
+  <!--
+    Design context: a Windows desktop companion inspired by the supplied Codenotch
+    screenshots and ui演示.mp4. Follow the operating-system theme by default;
+    show three circular modules initially, a glance card on hover, and one
+    inward-opening activity panel on click.
+    All readings below are illustrative UI data, not live system measurements.
+  -->
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f5f6f7;
+      --stage: #e9ecee;
+      --surface: #ffffff;
+      --surface-raised: #f5f7f8;
+      --surface-muted: #edf0f2;
+      --line: #dce1e4;
+      --text: #1b2025;
+      --muted: #737d86;
+      --soft-text: #9aa3aa;
+      --accent: #32b9ec;
+      --accent-soft: #e4f7fd;
+      --dock: #fbfcfd;
+      --dock-inner: #eef1f3;
+      --dock-line: #d9dfe3;
+      --dock-text: #20262b;
+      --dock-active-text: #08232d;
+      --shadow: 0 24px 70px rgba(29, 40, 48, .18);
+      --stage-wall:
+        radial-gradient(ellipse at 30% 42%, rgba(179, 216, 218, .58), transparent 44%),
+        radial-gradient(ellipse at 76% 62%, rgba(233, 205, 174, .48), transparent 40%),
+        linear-gradient(135deg, #eff1ef, #e2e7e8 56%, #f2eee8);
+      font-family: "Segoe UI", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #171a1e;
+      --stage: #101418;
+      --surface: #23272c;
+      --surface-raised: #2b3036;
+      --surface-muted: #343a41;
+      --line: #40474e;
+      --text: #f1f3f4;
+      --muted: #a4adb5;
+      --soft-text: #7f8991;
+      --accent: #48c3ef;
+      --accent-soft: #183e4d;
+      --dock: #080a0c;
+      --dock-inner: #202428;
+      --dock-line: #353b40;
+      --dock-text: #f5f7f8;
+      --dock-active-text: #f4fbff;
+      --shadow: 0 28px 80px rgba(0, 0, 0, .42);
+      --stage-wall:
+        radial-gradient(ellipse at 31% 42%, rgba(46, 98, 104, .34), transparent 45%),
+        radial-gradient(ellipse at 76% 61%, rgba(120, 77, 48, .25), transparent 41%),
+        linear-gradient(135deg, #171e23, #20272b 56%, #171c20);
+    }
+    * { box-sizing: border-box; }
+    html.is-initializing, html.is-initializing * { transition: none !important; animation: none !important; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--page);
+      transition: background-color .24s ease, color .24s ease;
+    }
+    button { font: inherit; color: inherit; }
+    button:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .page { width: min(1500px, 100%); margin: 0 auto; padding: 24px 28px 22px; }
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 0 4px 16px;
+    }
+    .brand-line { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 11px;
+      display: grid; place-items: center;
+      color: #071116; background: var(--accent);
+      font-size: 14px; font-weight: 800; letter-spacing: -.05em;
+    }
+    .brand-copy { display: grid; gap: 2px; }
+    .brand-title { font-size: 14px; font-weight: 720; letter-spacing: -.01em; }
+    .brand-kicker {
+      color: var(--muted); font-size: 10px; font-weight: 650;
+      letter-spacing: .12em; text-transform: uppercase;
+    }
+    .preview-meta { display: flex; align-items: center; gap: 10px; }
+    .preview-badge, .theme-readout {
+      display: inline-flex; align-items: center; gap: 7px;
+      min-height: 30px; padding: 0 11px;
+      border: 1px solid var(--line); border-radius: 999px;
+      color: var(--muted); background: var(--surface);
+      font-size: 11px; font-weight: 620;
+    }
+    .preview-badge::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .theme-readout { color: var(--text); }
+    .theme-readout .small-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .desktop-stage {
+      position: relative;
+      height: min(820px, calc(100vh - 132px));
+      min-height: 620px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 24px;
+      background: var(--stage-wall);
+      box-shadow: 0 14px 44px rgba(22, 35, 42, .09);
+      isolation: isolate;
+    }
+    .desktop-stage::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background:
+        linear-gradient(115deg, transparent 43%, rgba(255,255,255,.12) 44%, transparent 45%),
+        radial-gradient(ellipse at 52% 110%, rgba(255,255,255,.24), transparent 46%);
+      pointer-events: none;
+    }
+    .desktop-label {
+      position: absolute; left: 30px; top: 28px;
+      display: grid; gap: 5px; color: var(--muted);
+      font-size: 12px; letter-spacing: .04em;
+    }
+    .desktop-label strong { color: var(--text); font-size: 12px; letter-spacing: .02em; }
+    .layout-switch { display: flex; gap: 5px; margin-top: 11px; }
+    .layout-switch button {
+      min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
+      color: var(--muted); background: var(--surface); font-size: 11px; cursor: pointer;
+    }
+    .layout-switch button.is-selected { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+    .stage-instruction {
+      position: absolute; left: 50%; top: 195px; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 13px; border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px; color: var(--muted);
+      background: color-mix(in srgb, var(--surface) 68%, transparent);
+      box-shadow: 0 8px 25px rgba(30,40,48,.05);
+      font-size: 11px; white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+    .stage-instruction kbd {
+      padding: 2px 6px; border: 1px solid var(--line); border-radius: 5px;
+      color: var(--text); background: var(--surface); font: 10px "Segoe UI", sans-serif;
+    }
+    .dock-root {
+      --dock-width: 320px;
+      --dock-height: 112px;
+      --dock-thickness: 112px;
+      --dock-along-size: 320px;
+      --dock-module-count: 3;
+      --dock-side-length: 320px;
+      --dock-side-thickness: 74px;
+      --dock-hit-size: 50px;
+      --dock-orbit-size: 46px;
+      --dock-symbol-size: clamp(15px, calc(var(--dock-orbit-size) * .46), 22px);
+      --dock-items-per-line: 3;
+      --dock-line-count: 1;
+      --dock-gap: 4px;
+      --dock-padding: 8px;
+      --dock-corner-radius: 24px;
+      --dock-strip-length: 23px;
+      --dock-strip-opacity: .76;
+      --dock-x: 50%;
+      --dock-y: 0px;
+      position: absolute; z-index: 5;
+      top: var(--dock-y); left: var(--dock-x);
+      width: var(--dock-width); height: var(--dock-height);
+      display: grid; place-items: stretch;
+      transform: translateX(-50%);
+      transition: left .22s ease, top .22s ease;
+    }
+    .dock-root.is-dragging { transition: none; cursor: grabbing; z-index: 12; }
+    .dock-root.is-initializing { transition: none !important; }
+    .dock-root:focus { outline: none; }
+    .dock-shell {
+      position: relative;
+      width: 100%; height: 100%; min-width: 0; min-height: 0;
+      color: var(--dock-text); background: var(--dock); border: 1px solid var(--dock-line);
+      overflow: hidden; border-radius: var(--dock-corner-radius);
+      box-shadow: 0 18px 28px rgba(0,0,0,.18);
+      transition: transform .22s ease, opacity .18s ease;
+    }
+    .module-row {
+      position: relative; z-index: 1; width: 100%; height: 100%; min-width: 0; min-height: 0;
+      display: grid; grid-auto-flow: row;
+      grid-template-columns: repeat(var(--dock-items-per-line), var(--dock-hit-size));
+      grid-template-rows: repeat(var(--dock-line-count), var(--dock-hit-size));
+      align-content: center; justify-content: center; overflow: hidden;
+      gap: var(--dock-gap); padding: var(--dock-padding);
+    }
+    .module-row::-webkit-scrollbar { display: none; }
+    .module-button {
+      width: var(--dock-hit-size); height: var(--dock-hit-size); min-width: 0; min-height: 0; overflow: visible;
+      display: grid; place-items: center;
+      padding: 0; border: 0; background: transparent; color: var(--dock-text);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .module-orbit {
+      position: relative; width: var(--dock-orbit-size); height: var(--dock-orbit-size); flex: 0 0 auto;
+      display: grid; place-items: center;
+      border: 1px solid var(--dock-line); border-radius: 50%;
+      background: var(--dock-inner);
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,.025);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .module-orbit::before {
+      content: ""; position: absolute; inset: 2px; z-index: 0; border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--ring-progress, 0%), color-mix(in srgb, var(--dock-line) 56%, transparent) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+      opacity: 0; transition: opacity .18s ease;
+    }
+    .dock-root[data-ring="inner"] .module-orbit::before,
+    .module-orbit.has-metric-ring::before { opacity: .95; }
+    .dock-root[data-ring="outer"] .module-orbit::after { inset: -6px; border-color: color-mix(in srgb, var(--accent) 58%, transparent); }
+    .dock-root[data-ring="outer"] .module-orbit::before { inset: -2px; opacity: .88; }
+    .module-orbit::after {
+      content: ""; position: absolute; inset: -4px;
+      border: 2px solid transparent; border-radius: 50%;
+      transition: border-color .18s ease, transform .18s ease;
+    }
+    .module-symbol {
+      display: grid; place-items: center;
+      width: 68%; height: 68%; max-width: 100%; max-height: 100%; overflow: hidden; color: var(--dock-text);
+      font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+      font-size: var(--dock-symbol-size); line-height: 1;
+    }
+    .module-symbol.wordmark { font-family: "Segoe UI", sans-serif; font-size: clamp(9px, calc(var(--dock-orbit-size) * .25), 12px); font-weight: 800; letter-spacing: -.06em; }
+    .module-symbol.readout { width: 90%; font-family: "Segoe UI", sans-serif; font-size: clamp(9px, calc(var(--dock-orbit-size) * .27), 13px); font-weight: 760; letter-spacing: -.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .module-symbol.timer-readout { font-size: clamp(8px, calc(var(--dock-orbit-size) * .22), 11px); }
+    .module-symbol.is-bell { animation: bell-ring .45s ease-in-out 6; transform-origin: 50% 15%; }
+    @keyframes bell-ring { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-20deg); } 75% { transform: rotate(20deg); } }
+    @media (prefers-reduced-motion: reduce) { .module-symbol.is-bell { animation: none; } }
+    .module-button:hover .module-orbit,
+    .module-button:focus-visible .module-orbit,
+    .module-button.is-active .module-orbit {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--dock-inner) 76%, var(--accent));
+      box-shadow: 0 0 0 5px rgba(72,195,239,.12), 0 5px 20px rgba(49,184,236,.13);
+    }
+    .module-button:hover .module-orbit::after,
+    .module-button:focus-visible .module-orbit::after,
+    .module-button.is-active .module-orbit::after { border-color: var(--accent); transform: rotate(-27deg); }
+    .dock-control { position: absolute; z-index: 2; width: 14px; height: 38px; display: grid; place-items: center; }
+    .dock-strip {
+      width: 5px; height: var(--dock-strip-length); padding: 0; border: 0; border-radius: 99px;
+      opacity: var(--dock-strip-opacity); background: #fff; box-shadow: 0 2px 8px rgba(10,18,24,.24); cursor: pointer;
+      transition: opacity .15s ease, transform .18s ease;
+    }
+    .dock-control[data-side="start"] { left: -11px; top: 50%; transform: translate(-50%,-50%); }
+    .dock-control[data-side="end"] { right: -11px; top: 50%; transform: translate(50%,-50%); }
+    .dock-control-action {
+      position: absolute; inset: 50% auto auto 50%; width: 43px; height: 43px;
+      display: grid; place-items: center; padding: 0; opacity: 0; pointer-events: none;
+      transform: translate(-50%,-50%) scale(.78); border: 1px solid var(--line); border-radius: 50%;
+      color: var(--text); background: var(--surface); box-shadow: 0 7px 20px rgba(21,31,38,.16);
+      cursor: pointer; transition: opacity .16s ease, transform .24s cubic-bezier(.2,.8,.2,1), background .18s ease, color .18s ease;
+    }
+    .dock-control[data-side="start"] .dock-control-action { --control-shift-x: -25px; }
+    .dock-control[data-side="end"] .dock-control-action { --control-shift-x: 25px; }
+    .dock-control:hover .dock-control-action, .dock-control:focus-within .dock-control-action { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) translateX(var(--control-shift-x, 0px)) scale(1); }
+    .dock-root[data-preview-peek="start"] .dock-control[data-side="start"] .dock-control-action,
+    .dock-root[data-preview-peek="end"] .dock-control[data-side="end"] .dock-control-action { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) translateX(var(--control-shift-x, 0px)) scale(1); }
+    .dock-control.is-suppressed .dock-control-action { opacity: 0; pointer-events: none; transform: translate(-50%,-50%) scale(.78); }
+    .dock-control:hover .dock-strip, .dock-control:focus-within .dock-strip { opacity: .28; transform: scale(.85); }
+    .dock-control-action:hover { color: #06202a; background: var(--accent); }
+    .grip-glyph { display: grid; place-items: center; width: 20px; height: 20px; }
+    .grip-glyph svg { display: block; width: 20px; height: 20px; }
+    .gear-glyph { font-family: "Segoe UI Symbol", sans-serif; font-size: 21px; line-height: 1; }
+    .dock-control-action.drag-handle { cursor: grab; touch-action: none; }
+    .dock-control-action.drag-handle:active { cursor: grabbing; }
+    .dock-root[data-edge="left"], .dock-root[data-edge="right"] { width: var(--dock-side-thickness); height: var(--dock-side-length); transform: translateY(-50%); }
+    .dock-root[data-edge="left"] .module-row, .dock-root[data-edge="right"] .module-row {
+      grid-auto-flow: column;
+      grid-template-columns: repeat(var(--dock-line-count), var(--dock-hit-size));
+      grid-template-rows: repeat(var(--dock-items-per-line), var(--dock-hit-size));
+    }
+    .dock-root[data-edge="left"] .dock-control[data-side="start"], .dock-root[data-edge="right"] .dock-control[data-side="start"] { left: 50%; top: -11px; transform: translate(-50%,-50%) rotate(90deg); }
+    .dock-root[data-edge="left"] .dock-control[data-side="end"], .dock-root[data-edge="right"] .dock-control[data-side="end"] { left: 50%; right: auto; top: auto; bottom: -11px; transform: translate(-50%,50%) rotate(90deg); }
+    .dock-root[data-edge="left"] .grip-glyph, .dock-root[data-edge="right"] .grip-glyph { transform: rotate(-90deg); }
+    .dock-root.is-hidden { visibility: hidden; pointer-events: none; }
+    .restore-strip {
+      position: absolute; z-index: 7; left: 50%; bottom: 42px; width: 58px; height: 7px;
+      padding: 0; border: 1px solid rgba(23,31,37,.28); border-bottom: 0; border-radius: 99px 99px 0 0; background: #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.16), 0 -3px 18px rgba(0,0,0,.26);
+      opacity: .9; transform: translateX(-50%); cursor: pointer; transition: width .18s ease, height .18s ease, opacity .18s ease;
+    }
+    .restore-strip:hover, .restore-strip:focus-visible { width: 78px; height: 11px; opacity: 1; }
+    .restore-strip[data-edge="top"] { top: 0; bottom: auto; border-radius: 0 0 99px 99px; }
+    .restore-strip[data-edge="left"], .restore-strip[data-edge="right"] { top: 50%; bottom: auto; left: auto; width: 7px; height: 58px; transform: translateY(-50%); border-radius: 0 99px 99px 0; }
+    .restore-strip[data-edge="left"] { left: 0; right: auto; }
+    .restore-strip[data-edge="right"] { right: 0; border-radius: 99px 0 0 99px; }
+    .restore-strip[data-edge="left"]:hover, .restore-strip[data-edge="left"]:focus-visible,
+    .restore-strip[data-edge="right"]:hover, .restore-strip[data-edge="right"]:focus-visible { width: 11px; height: 78px; }
+    .edge-targets { position: absolute; z-index: 4; inset: 0; display: none; pointer-events: none; }
+    .edge-targets.is-visible { display: block; }
+    .edge-target {
+      position: absolute; display: grid; place-items: center; border: 2px dashed color-mix(in srgb, var(--accent) 76%, white);
+      border-radius: 18px; color: var(--text); background: color-mix(in srgb, var(--surface) 46%, transparent);
+      opacity: .62; font-size: 11px; font-weight: 700; letter-spacing: .04em; transition: opacity .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .edge-target[data-edge="top"] { left: 50%; top: 2px; width: min(390px, 48%); height: 112px; transform: translateX(-50%); }
+    .edge-target[data-edge="bottom"] { left: 50%; bottom: 43px; width: min(390px, 48%); height: 112px; transform: translateX(-50%); }
+    .edge-target[data-edge="left"] { left: 2px; top: 50%; width: 112px; height: min(390px, 52%); transform: translateY(-50%); }
+    .edge-target[data-edge="right"] { right: 2px; top: 50%; width: 112px; height: min(390px, 52%); transform: translateY(-50%); }
+    .edge-target.is-active { opacity: 1; background: color-mix(in srgb, var(--accent-soft) 78%, transparent); box-shadow: 0 0 0 5px rgba(49,184,236,.13); }
+    .popover {
+      position: absolute; z-index: 9;
+      width: min(356px, calc(100vw - 36px));
+      padding: 18px;
+      border: 1px solid var(--line); border-radius: 19px;
+      color: var(--text); background: var(--surface);
+      box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: translateY(-5px) scale(.985);
+      transform-origin: top center;
+      transition: opacity .16s ease, transform .16s ease, visibility .16s;
+    }
+    .popover.is-visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0) scale(1); }
+    .popover::before {
+      content: ""; position: absolute; top: -7px; left: var(--arrow-x, 50%);
+      width: 13px; height: 13px; transform: translateX(-50%) rotate(45deg);
+      border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .popover.is-side-left::before, .popover.is-side-right::before {
+      top: var(--arrow-y, 50%); left: -7px; transform: translateY(-50%) rotate(45deg);
+      border: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+    }
+    .popover.is-side-right::before { left: auto; right: -7px; transform: translateY(-50%) rotate(225deg); }
+    .popover.is-above::before {
+      top: auto; bottom: -7px; border: 0;
+      border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    }
+    .preview-stat { margin: 14px 0 4px; font-size: 26px; font-weight: 720; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+    .preview-copy { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .preview-open { margin-top: 14px; color: var(--accent); font-size: 11px; font-weight: 700; }
+    .activity-panel {
+      position: absolute; z-index: 11; display: flex; flex-direction: column;
+      width: min(390px, calc(100% - 28px)); min-height: 260px; max-height: calc(100% - 62px);
+      overflow: hidden; border: 1px solid var(--line); border-radius: 20px;
+      color: var(--text); background: var(--surface); box-shadow: var(--shadow);
+      opacity: 0; transform: translateY(-6px) scale(.99);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .activity-panel.is-visible { opacity: 1; transform: none; }
+    .activity-head { display: flex; align-items: center; gap: 11px; padding: 17px 18px 14px; border-bottom: 1px solid var(--line); }
+    .activity-back { width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); cursor: pointer; font-size: 19px; }
+    .activity-heading { flex: 1; min-width: 0; }
+    .activity-heading h2 { margin: 0; font-size: 16px; }
+    .activity-heading p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .activity-body { min-height: 0; flex: 1; overflow: auto; padding: 18px; }
+    .activity-foot { display: flex; justify-content: space-between; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .activity-section { display: grid; gap: 10px; margin-bottom: 20px; }
+    .activity-section:last-child { margin-bottom: 0; }
+    .activity-section h3 { margin: 0; font-size: 12px; color: var(--muted); font-weight: 700; }
+    .activity-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .activity-input-row { display: flex; gap: 7px; }
+    .activity-input { min-width: 0; flex: 1; min-height: 38px; padding: 0 11px; border: 1px solid var(--line); border-radius: 9px; color: var(--text); background: var(--surface-raised); }
+    .activity-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .activity-list { display: grid; gap: 7px; }
+    .activity-task { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); }
+    .activity-task .task-toggle { width: 27px; height: 27px; flex: 0 0 27px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+    .activity-task.is-done .task-toggle { background: var(--accent); color: #08222c; border-color: var(--accent); }
+    .activity-task span { flex: 1; min-width: 0; font-size: 12px; overflow-wrap: anywhere; }
+    .activity-task.is-done .task-text { color: var(--muted); text-decoration: line-through; }
+    .activity-task .task-delete { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 17px; }
+    .task-drag { flex: 0 0 22px; width: 22px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: grab; font-size: 17px; touch-action: none; }
+    .task-drag:active { cursor: grabbing; }
+    .task-drag:focus-visible { outline: 2px solid var(--accent); border-radius: 5px; }
+    .activity-task.is-dragging { opacity: .45; }
+    .activity-task.drop-before { box-shadow: inset 0 3px 0 var(--accent); }
+    .activity-task.drop-after { box-shadow: inset 0 -3px 0 var(--accent); }
+    .task-priority { flex: 0 0 16px !important; color: var(--muted); font-size: 10px !important; text-align: center; font-variant-numeric: tabular-nums; }
+    .panel-hero { padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-raised); }
+    .panel-hero strong { display: block; margin-top: 10px; font-size: 42px; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+    .panel-hero small { color: var(--muted); font-size: 11px; }
+    .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .panel-actions .action-button { min-height: 38px; }
+    .panel-data { display: grid; gap: 9px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-raised); }
+    .panel-data-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+    .panel-data-row strong { font-variant-numeric: tabular-nums; }
+    .popover-head { display: flex; align-items: center; gap: 11px; position: relative; }
+    .popover-mark {
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 11px; color: #10232c; background: var(--accent);
+      font-size: 17px; font-weight: 750;
+    }
+    .popover-title { flex: 1; display: grid; gap: 2px; }
+    .popover-title strong { font-size: 14px; font-weight: 720; }
+    .popover-title span { color: var(--muted); font-size: 12px; }
+    .sample-pill {
+      padding: 5px 8px; border: 1px solid var(--line); border-radius: 999px;
+      color: var(--muted); background: var(--surface-raised);
+      font-size: 10px; font-weight: 650; letter-spacing: .02em;
+    }
+    .popover-content { position: relative; margin-top: 17px; }
+    .popover-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 11px;
+    }
+    .todo-progress { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; font-size: 13px; }
+    .todo-progress strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+    .progress-track { height: 5px; overflow: hidden; border-radius: 99px; background: var(--surface-muted); }
+    .progress-track i { display: block; height: 100%; width: 38%; border-radius: inherit; background: var(--accent); }
+    .todo-list { display: grid; gap: 2px; margin-top: 12px; }
+    .todo-line {
+      width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 3px;
+      border: 0; border-radius: 7px; color: var(--text); background: transparent;
+      text-align: left; font-size: 13px; cursor: pointer;
+    }
+    .todo-line:hover { background: var(--surface-raised); }
+    .todo-check {
+      width: 16px; height: 16px; display: grid; place-items: center;
+      flex: 0 0 16px; border: 1px solid var(--line); border-radius: 5px;
+      color: #073241; background: var(--accent); font-size: 11px; font-weight: 800;
+    }
+    .todo-line.pending .todo-check { color: transparent; background: transparent; }
+    .todo-line.completed span:last-child { color: var(--muted); text-decoration: line-through; }
+    .timer-state { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+    .timer-state i { width: 7px; height: 7px; border-radius: 50%; background: #62c68c; box-shadow: 0 0 0 4px rgba(98,198,140,.12); }
+    .timer-value {
+      margin: 12px 0 14px; color: var(--text);
+      font-size: 42px; font-weight: 620; letter-spacing: -.055em;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .timer-actions { display: flex; gap: 8px; }
+    .action-button {
+      min-height: 34px; padding: 0 12px;
+      border: 1px solid var(--line); border-radius: 9px;
+      color: var(--text); background: var(--surface-raised);
+      font-size: 12px; font-weight: 650; cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .action-button:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .action-button.primary { border-color: var(--accent); color: #08222c; background: var(--accent); }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric-box { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-raised); }
+    .metric-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .metric-top span { color: var(--muted); font-size: 12px; }
+    .metric-top strong { font-size: 19px; font-weight: 680; font-variant-numeric: tabular-nums; }
+    .metric-box .progress-track i { width: var(--fill); }
+    .empty-state {
+      display: grid; justify-items: start; gap: 9px;
+      padding: 12px 2px 2px; color: var(--muted); font-size: 12px; line-height: 1.55;
+    }
+    .empty-state strong { color: var(--text); font-size: 13px; }
+    .settings-overlay { position: absolute; z-index: 20; inset: 0; pointer-events: none; }
+    .settings-window {
+      position: absolute; width: min(610px, calc(100% - 28px)); height: min(650px, calc(100% - 65px));
+      display: grid; grid-template-columns: 174px minmax(0,1fr); pointer-events: auto;
+      overflow: hidden; border: 1px solid color-mix(in srgb, var(--line) 75%, white);
+      border-radius: 20px; background: var(--surface); box-shadow: var(--shadow);
+    }
+    .settings-side {
+      display: flex; flex-direction: column; padding: 18px 13px;
+      border-right: 1px solid var(--line); background: var(--surface-raised);
+    }
+    .settings-brand { display: flex; align-items: center; gap: 10px; padding: 3px 7px 22px; }
+    .settings-brand .brand-mark { width: 30px; height: 30px; border-radius: 9px; }
+    .settings-brand strong { display: block; font-size: 11px; white-space: nowrap; }
+    .settings-brand span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .settings-nav { display: grid; gap: 4px; }
+    .nav-button {
+      width: 100%; min-height: 40px; display: flex; align-items: center; gap: 11px;
+      padding: 0 11px; border: 0; border-radius: 10px; color: var(--muted);
+      background: transparent; text-align: left; font-size: 13px; font-weight: 620; cursor: pointer;
+    }
+    .nav-button:hover { color: var(--text); background: var(--surface-muted); }
+    .nav-button.is-selected { color: var(--text); background: var(--surface); box-shadow: 0 1px 5px rgba(10,20,28,.08); }
+    .nav-icon { width: 18px; color: var(--muted); font-size: 15px; text-align: center; }
+    .settings-side-note { margin-top: auto; padding: 12px 7px 3px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .settings-main { min-width: 0; overflow: auto; padding: 28px 32px; }
+    .settings-topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .settings-heading { margin: 0; font-size: 22px; font-weight: 730; letter-spacing: -.03em; }
+    .settings-subheading { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .close-settings {
+      width: 32px; height: 32px; display: grid; place-items: center;
+      border: 1px solid var(--line); border-radius: 9px;
+      color: var(--muted); background: var(--surface); font-size: 17px; cursor: pointer;
+    }
+    .settings-section { margin: 0 0 19px; }
+    .section-title { margin: 0 0 9px; font-size: 13px; font-weight: 700; }
+    .section-description { margin: -3px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .setting-card { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .module-setting-row {
+      display: grid; grid-template-columns: minmax(0,1fr) auto auto;
+      align-items: center; gap: 10px; min-height: 66px; padding: 10px 13px;
+      border-bottom: 1px solid var(--line);
+    }
+    .module-setting-row:last-child { border-bottom: 0; }
+    .setting-module-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .tiny-orbit {
+      width: 32px; height: 32px; display: grid; place-items: center; flex: 0 0 32px;
+      border: 1px solid var(--line); border-radius: 50%;
+      color: var(--text); background: var(--surface-raised); font-size: 14px;
+    }
+    .setting-module-name strong { display: block; font-size: 13px; }
+    .setting-module-name small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .order-controls { display: flex; gap: 4px; }
+    .order-button {
+      width: 27px; height: 27px; display: grid; place-items: center;
+      border: 1px solid var(--line); border-radius: 7px;
+      color: var(--muted); background: var(--surface-raised); cursor: pointer;
+    }
+    .order-button:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+    .order-button:disabled { opacity: .36; cursor: default; }
+    .module-toggle {
+      width: 36px; height: 21px; position: relative;
+      padding: 0; border: 0; border-radius: 99px;
+      background: #969da2; cursor: pointer; transition: background .16s ease;
+    }
+    .module-toggle::after {
+      content: ""; position: absolute; top: 3px; left: 3px;
+      width: 15px; height: 15px; border-radius: 50%; background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .16s ease;
+    }
+    .module-toggle[aria-pressed="true"] { background: var(--accent); }
+    .module-toggle[aria-pressed="true"]::after { transform: translateX(15px); background: #09222c; }
+    .add-module-button {
+      min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
+      color: var(--text); background: var(--surface-raised); font-size: 10px; font-weight: 650; cursor: pointer;
+    }
+    .add-module-button:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .theme-segmented {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+      padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised);
+    }
+    .theme-choice {
+      min-height: 34px; border: 1px solid transparent; border-radius: 8px;
+      color: var(--muted); background: transparent; font-size: 12px; font-weight: 650; cursor: pointer;
+    }
+    .theme-choice:hover { color: var(--text); }
+    .theme-choice.is-selected {
+      border-color: var(--line); color: var(--text); background: var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .theme-preview {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px;
+      margin-top: 11px; padding: 12px; border: 1px solid var(--line);
+      border-radius: 11px; background: var(--surface-raised);
+    }
+    .theme-preview strong { display: block; font-size: 11px; }
+    .theme-preview span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .theme-swatch { display: flex; gap: 4px; }
+    .theme-swatch i { width: 17px; height: 17px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+    .theme-swatch i:nth-child(2) { background: var(--surface-muted); }
+    .theme-swatch i:nth-child(3) { border-color: var(--accent); background: var(--accent); }
+    .behavior-list { display: grid; gap: 0; }
+    .behavior-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 13px 14px; border-bottom: 1px solid var(--line);
+    }
+    .behavior-row:last-child { border-bottom: 0; }
+    .behavior-row strong { display: block; font-size: 11px; }
+    .behavior-row small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .behavior-chip { padding: 5px 8px; border-radius: 999px; color: #0a2933; background: var(--accent); font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .setting-segmented { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); }
+    .setting-segmented.four { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .setting-segmented button { min-height: 32px; padding: 0 6px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 650; cursor: pointer; }
+    .setting-segmented button:hover { color: var(--text); }
+    .setting-segmented button.is-selected { border-color: var(--line); color: var(--text); background: var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .dimension-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; padding: 13px; }
+    .size-preset-row { margin: 0 0 9px; }
+    .dimension-field { display: grid; grid-template-columns: 1fr 74px; align-items: center; gap: 7px 10px; }
+    .dimension-field label { color: var(--text); font-size: 11px; font-weight: 650; }
+    .dimension-field input[type="range"] { width: 100%; accent-color: var(--accent); grid-column: 1 / 2; }
+    .dimension-field input[type="number"], .setting-select { width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: var(--surface-raised); font: inherit; font-size: 11px; }
+    .dimension-field small { grid-column: 1 / -1; color: var(--muted); font-size: 10px; }
+    .inline-control { display: flex; align-items: center; gap: 9px; }
+    .inline-control .setting-segmented { flex: 1; }
+    .mini-action { min-height: 31px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: var(--surface-raised); font-size: 10px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+    .mini-action:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .service-row { display: grid; grid-template-columns: 34px minmax(0,1fr) auto auto; align-items: center; gap: 11px; min-height: 62px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
+    .service-row:last-child { border-bottom: 0; }
+    .service-mark { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); font-size: 13px; font-weight: 750; }
+    .service-row strong { display: block; font-size: 12px; }
+    .service-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .status-label { padding: 4px 7px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .status-label.ready { color: #168254; border-color: color-mix(in srgb, #168254 28%, var(--line)); background: color-mix(in srgb, #168254 8%, var(--surface)); }
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 50px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
+    .switch-row:last-child { border-bottom: 0; }
+    .switch-row strong { display: block; font-size: 11px; }
+    .switch-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .settings-toggle { width: 37px; height: 22px; position: relative; flex: 0 0 37px; padding: 0; border: 0; border-radius: 99px; background: #969da2; cursor: pointer; transition: background .16s ease; }
+    .settings-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .16s ease; }
+    .settings-toggle[aria-pressed="true"] { background: var(--accent); }
+    .settings-toggle[aria-pressed="true"]::after { transform: translateX(15px); background: #09222c; }
+    .settings-footer-note { margin-top: 11px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .setting-slider-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 7px 12px; padding: 12px 13px; border-bottom: 1px solid var(--line); }
+    .setting-slider-row:last-child { border-bottom: 0; }
+    .setting-slider-row label { color: var(--text); font-size: 11px; font-weight: 650; }
+    .setting-slider-row output { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .setting-slider-row input[type="range"] { width: 100%; grid-column: 1 / -1; accent-color: var(--accent); }
+    .setting-slider-row small { grid-column: 1 / -1; margin-top: -5px; color: var(--muted); font-size: 10px; }
+    .settings-status.warning i { background: #e1a84e; }
+    .settings-status {
+      display: flex; align-items: center; gap: 7px; margin-top: 15px;
+      color: var(--muted); font-size: 10px;
+    }
+    .settings-status i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .taskbar {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border-top: 1px solid rgba(255,255,255,.38);
+      color: color-mix(in srgb, var(--text) 76%, transparent);
+      background: color-mix(in srgb, var(--surface) 60%, transparent);
+      backdrop-filter: blur(14px);
+    }
+    .taskbar-center { display: flex; align-items: center; gap: 13px; }
+    .taskbar-icon { width: 14px; height: 14px; display: grid; place-items: center; font-size: 12px; }
+    .taskbar-icon.active { color: var(--accent); }
+    .taskbar-right { position: absolute; right: 22px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 10px; }
+    .stage-footnote {
+      position: absolute; left: 28px; bottom: 60px;
+      display: grid; gap: 4px; color: var(--muted); font-size: 10px;
+    }
+    .stage-footnote strong { color: var(--text); font-size: 11px; }
+    .page-foot {
+      display: flex; justify-content: space-between; gap: 14px;
+      margin: 12px 4px 0; color: var(--muted); font-size: 10px;
+    }
+    .page-foot strong { color: var(--text); font-weight: 650; }
+    [hidden] { display: none !important; }
+    @media (max-width: 720px) {
+      .page { padding: 14px 10px; }
+      .page-head { margin-inline: 3px; }
+      .preview-meta { gap: 5px; }
+      .preview-badge { display: none; }
+      .desktop-stage { min-height: 610px; height: calc(100vh - 110px); border-radius: 17px; }
+      .desktop-label { left: 17px; top: 18px; }
+      .stage-instruction { top: 178px; font-size: 10px; }
+      .dock-root { gap: 6px; max-width: calc(100% - 8px); }
+      .dock-shell { min-width: 0; max-width: none; overflow: hidden; padding: 0; }
+      .dock-utility { width: 37px; height: 37px; flex-basis: 37px; margin-top: 32px; }
+      .settings-window { grid-template-columns: 64px minmax(0,1fr); }
+      .settings-side { padding: 12px 7px; }
+      .settings-brand { justify-content: center; padding: 2px 0 18px; }
+      .settings-brand > div:last-child, .nav-label, .settings-side-note { display: none; }
+      .nav-button { justify-content: center; padding: 0; }
+      .nav-icon { font-size: 17px; }
+      .settings-main { padding: 20px 16px; }
+      .settings-heading { font-size: 19px; }
+      .module-setting-row { grid-template-columns: minmax(0,1fr) auto; }
+      .order-controls { grid-column: 1 / 2; grid-row: 2; padding-left: 42px; }
+      .module-toggle, .add-module-button { grid-column: 2; grid-row: 1 / span 2; }
+      .taskbar-right { right: 11px; }
+      .dock-root { width: min(var(--dock-width), calc(100vw - 42px)); height: var(--dock-height); }
+      .dock-root[data-edge="left"], .dock-root[data-edge="right"] { width: var(--dock-side-thickness); height: var(--dock-side-length); }
+      .dock-shell { max-width: none; overflow: hidden; padding: 0; }
+      .layout-switch { flex-wrap: wrap; }
+      .activity-panel { border-radius: 16px; }
+      .dock-control-action { width: 37px; height: 37px; }
+      .edge-target[data-edge="top"], .edge-target[data-edge="bottom"] { width: min(82%, 360px); height: 100px; }
+      .edge-target[data-edge="left"], .edge-target[data-edge="right"] { width: 82px; height: min(58%, 340px); }
+      .dimension-grid { grid-template-columns: 1fr; }
+      .service-row { grid-template-columns: 32px minmax(0,1fr) auto; }
+      .service-row .settings-toggle, .service-row .mini-action { grid-column: 3; grid-row: 1 / span 2; }
+      .service-row .status-label { grid-column: 2; grid-row: 2; width: fit-content; }
+      .setting-segmented.four button { padding-inline: 2px; font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <div class="brand-line">
+        <div class="brand-mark" aria-hidden="true">W</div>
+        <div class="brand-copy">
+          <div class="brand-title">Widget Platform</div>
+          <div class="brand-kicker">Desktop UI · Preview</div>
+        </div>
+      </div>
+      <div class="preview-meta">
+        <span class="preview-badge">交互预览 · 示例数据</span>
+        <span class="theme-readout"><i class="small-dot"></i><span id="themeReadout">跟随系统</span></span>
+      </div>
+    </header>
+
+    <main class="desktop-stage" id="stage" aria-label="桌面组件交互预览">
+      <div class="desktop-label">
+        <strong>桌面摘要</strong>
+        <span>摘要常驻 · 预览就近 · 点击处理</span>
+        <div class="layout-switch" role="group" aria-label="快速切换布局">
+          <button type="button" data-preview-edge="top" class="is-selected">顶部摘要</button>
+          <button type="button" data-preview-edge="right">右侧紧凑</button>
+        </div>
+      </div>
+      <div class="stage-instruction">
+        <span>悬停看概况</span><span>·</span><span>单击打开面板</span><kbd>Esc</kbd>
+      </div>
+
+      <div class="edge-targets" id="edgeTargets" aria-hidden="true">
+        <div class="edge-target" data-edge="top">上方居中</div>
+        <div class="edge-target" data-edge="right">右侧居中</div>
+        <div class="edge-target" data-edge="bottom">下方居中</div>
+        <div class="edge-target" data-edge="left">左侧居中</div>
+      </div>
+        <div class="dock-root is-initializing" id="dockRoot" data-edge="top" data-visibility="always" tabindex="-1">
+          <div class="dock-shell" id="dockShell">
+          <div class="module-row" id="moduleRow" role="toolbar" aria-label="已启用模块"></div>
+        </div>
+        <div class="dock-control" data-side="start" id="dragControl">
+          <button class="dock-strip" id="dragStrip" type="button" aria-label="显示移动手柄"></button>
+          <button class="dock-control-action drag-handle" id="dragHandle" type="button" aria-label="按住并拖动组件" title="按住拖动">
+            <span class="grip-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 12V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11.5 11V4.5a1.5 1.5 0 0 1 3 0V11"/><path d="M14.5 11V6a1.5 1.5 0 0 1 3 0v6"/><path d="M17.5 11a1.5 1.5 0 0 1 3 0v3.2c0 4.1-2.8 6.8-6.8 6.8h-2.1c-2.2 0-3.8-1.1-5.1-2.8L3.8 14.8a1.6 1.6 0 0 1 2.5-2l2.2 2.2V12"/></svg></span>
+          </button>
+        </div>
+        <div class="dock-control" data-side="end" id="settingsControl">
+          <button class="dock-strip" id="settingsStrip" type="button" aria-label="显示设置按钮"></button>
+          <button class="dock-control-action" id="settingsButton" type="button" aria-label="打开设置" title="设置">
+            <span class="gear-glyph" aria-hidden="true">⚙</span>
+          </button>
+        </div>
+      </div>
+      <button class="restore-strip" id="restoreStrip" type="button" aria-label="重新显示组件" title="重新显示组件" hidden></button>
+
+      <section class="popover" id="popover" aria-live="polite"></section>
+      <section class="activity-panel" id="activityPanel" role="region" aria-label="活动面板" hidden>
+        <div class="activity-head">
+          <button class="activity-back" id="activityBack" type="button" aria-label="返回摘要">←</button>
+          <div class="activity-heading"><h2 id="activityTitle">模块</h2><p id="activitySubtitle">交互预览</p></div>
+          <span class="sample-pill">示例</span>
+        </div>
+        <div class="activity-body" id="activityBody"></div>
+        <div class="activity-foot"><span>仅演示交互 · 无真实数据连接</span><span id="activityFootState">单个活动面板</span></div>
+      </section>
+
+      <div class="stage-footnote">
+        <strong>轻量 · 就近 · 可收起</strong>
+        <span>需要处理时才展开活动面板，返回后保留摘要。</span>
+      </div>
+      <div class="taskbar" aria-hidden="true">
+        <div class="taskbar-center">
+          <span class="taskbar-icon active">⊞</span>
+          <span class="taskbar-icon">⌕</span>
+          <span class="taskbar-icon">▣</span>
+          <span class="taskbar-icon">◉</span>
+          <span class="taskbar-icon">♫</span>
+        </div>
+        <div class="taskbar-right"><span>网络</span><span>音量</span><span>14:32</span></div>
+      </div>
+
+      <div class="settings-overlay" id="settingsOverlay" hidden>
+        <section class="settings-window" role="region" aria-labelledby="settingsTitle">
+          <aside class="settings-side">
+            <div class="settings-brand">
+              <div class="brand-mark" aria-hidden="true">W</div>
+              <div><strong>Widget Platform</strong><span>偏好设置</span></div>
+            </div>
+            <nav class="settings-nav" aria-label="设置分类">
+              <button class="nav-button is-selected" type="button" data-tab="modules"><span class="nav-icon">◉</span><span class="nav-label">模块与顺序</span></button>
+              <button class="nav-button" type="button" data-tab="services"><span class="nav-icon">◎</span><span class="nav-label">服务与账号</span></button>
+              <button class="nav-button" type="button" data-tab="appearance"><span class="nav-icon">◐</span><span class="nav-label">外观</span></button>
+              <button class="nav-button" type="button" data-tab="behavior"><span class="nav-icon">⌖</span><span class="nav-label">位置与交互</span></button>
+              <button class="nav-button" type="button" data-tab="general"><span class="nav-icon">⚙</span><span class="nav-label">通用</span></button>
+            </nav>
+            <div class="settings-side-note">设置自动保存在本机。此页面为交互概念预览。</div>
+          </aside>
+          <div class="settings-main" id="settingsMain">
+            <div class="settings-topline">
+              <div><h1 class="settings-heading" id="settingsTitle">模块与顺序</h1><p class="settings-subheading" id="settingsSubtitle">选择要显示的圆形图标，并调整它们在摘要栏中的顺序。</p></div>
+              <button class="close-settings" id="closeSettings" type="button" aria-label="关闭设置">×</button>
+            </div>
+            <div id="settingsContent"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="page-foot">
+      <span><strong>预览交互：</strong>切换顶部/右侧 · 悬停概况 · 单击活动面板 · 白条拖动四边 · Esc 返回</span>
+      <span>此稿用于确认形状与逻辑，不代表已接入真实数据。</span>
+    </footer>
+  </div>
+
+  <script>
+    const MODULES = {
+      todo: {
+        id: "todo", label: "待办", value: "1 / 3", icon: "✓", detail: "本地任务示例",
+        description: "本地任务 · 3 项未完成"
+      },
+      focus: {
+        id: "focus", label: "专注", value: "25:00", icon: "◷", detail: "25 分钟专注示例",
+        description: "专注计时 · 进行中"
+      },
+      cpu: { id: "cpu", label: "CPU", value: "17%", icon: "CPU", detail: "处理器占用 · 示例读数", description: "处理器占用 · 示例读数" },
+      gpu: { id: "gpu", label: "GPU", value: "36%", icon: "GPU", detail: "图形处理器占用 · 示例读数", description: "图形处理器占用 · 示例读数" },
+      temperature: { id: "temperature", label: "温度", value: "48°C", icon: "🌡", detail: "硬件温度 · 示例读数", description: "硬件温度 · 示例读数" },
+      memory: { id: "memory", label: "内存", value: "62%", icon: "▥", detail: "内存占用 · 示例读数", description: "内存占用 · 示例读数" },
+      media: {
+        id: "media", label: "媒体", value: "—", icon: "♫", detail: "媒体会话",
+        description: "界面预览 · 尚未接入"
+      },
+      weather: {
+        id: "weather", label: "天气", value: "—", icon: "☼", detail: "天气概览",
+        description: "界面预览 · 尚未接入"
+      }
+    };
+    // Static values exist only to demonstrate the presentation contract in this HTML prototype.
+    const METRIC_IDS = ["cpu", "gpu", "temperature", "memory"];
+    const METRIC_DEMOS = {
+      cpu: { value: "17%", progress: 17, detail: "处理器占用" },
+      gpu: { value: "36%", progress: 36, detail: "图形处理器占用" },
+      temperature: { value: "48°C", progress: 53, detail: "48°C 相对 90°C 演示阈值；不等同于占用率" },
+      memory: { value: "62%", progress: 62, detail: "内存占用" }
+    };
+    const DEFAULT_ORDER = ["todo", "focus", ...METRIC_IDS];
+    const SIZE_PRESETS = {
+      small: { length: 176, thickness: 68 },
+      medium: { length: 260, thickness: 80 },
+      large: { length: 400, thickness: 136 }
+    };
+    const ICON_MIN = 34;
+    const ICON_MAX = 52;
+    const DOCK_GAP = 4;
+    const DOCK_PADDING = 8;
+    const DOCK_BORDER = 2;
+    let state = {
+      order: DEFAULT_ORDER.slice(),
+      theme: "system",
+      activeTab: "modules",
+      edge: "top",
+      edgeOffsets: { top: 0.5, right: 0.5, bottom: 0.5, left: 0.5 },
+      length: 260,
+      thickness: 80,
+      iconSize: 46,
+      cornerRadius: 24,
+      stripLength: 23,
+      stripOpacity: 76,
+      sizePreset: "medium",
+      visibility: "always",
+      hidden: false,
+      showDragHandle: true,
+      circleMode: "off",
+      services: { todo: true, focus: true, cpu: true, gpu: true, temperature: true, memory: true, media: false, weather: false },
+      startup: false,
+      tray: "tray",
+      language: "system",
+      updateStatus: "当前为预览版本",
+      folderStatus: "此预览不会读取或打开本机目录。",
+      notifications: false,
+      hoveredId: null,
+      activePanelId: null,
+      timerStatus: "idle",
+      timerRemainingMs: 25 * 60 * 1000,
+      timerDeadlineAt: null,
+      displayPhase: 0,
+      mediaDemoActive: false,
+      mediaDemoPlaying: false,
+      weatherDemoActive: false,
+      todoItems: [
+        { id: 1, text: "整理今天的待办", done: true },
+        { id: 2, text: "确认窗口位置逻辑", done: false },
+        { id: 3, text: "回顾本周计划", done: false }
+      ],
+      nextTodoId: 4
+    };
+    const stage = document.getElementById("stage");
+    const dockRoot = document.getElementById("dockRoot");
+    const moduleRow = document.getElementById("moduleRow");
+    const popover = document.getElementById("popover");
+    const activityPanel = document.getElementById("activityPanel");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const settingsMain = document.getElementById("settingsMain");
+    let hideTimer = 0;
+    let dragState = null;
+    let timerTick = 0;
+    let draggedTaskId = null;
+    let suppressNextFocusPreview = false;
+
+    function loadSavedState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("widget-platform-preview") || "null");
+        if (saved && Array.isArray(saved.order)) {
+          const valid = saved.order.flatMap((id) => id === "system" ? METRIC_IDS : MODULES[id] ? [id] : []);
+          state.order = valid.length ? Array.from(new Set(valid)) : DEFAULT_ORDER.slice();
+        }
+        if (saved && ["system", "light", "dark"].includes(saved.theme)) state.theme = saved.theme;
+        if (saved && ["top", "right", "bottom", "left"].includes(saved.edge)) state.edge = saved.edge;
+        if (saved && saved.edgeOffsets) state.edgeOffsets = { ...state.edgeOffsets, ...saved.edgeOffsets };
+        if (saved && saved.sizeModelVersion === 3) {
+          if (Number.isFinite(saved.length)) state.length = Math.max(68, Math.min(720, saved.length));
+          if (Number.isFinite(saved.thickness)) state.thickness = Math.max(68, Math.min(240, saved.thickness));
+        } else if (saved) {
+          // Keep the size currently visible to the user when merging the old horizontal and side preferences.
+          const side = state.edge === "left" || state.edge === "right";
+          const oldLength = side && Number.isFinite(saved.sideLength) ? saved.sideLength : saved.width;
+          const oldThickness = side && Number.isFinite(saved.sideThickness) ? saved.sideThickness : saved.height;
+          if (Number.isFinite(oldLength)) state.length = Math.max(68, Math.min(720, oldLength));
+          if (Number.isFinite(oldThickness)) state.thickness = Math.max(68, Math.min(240, oldThickness));
+        }
+        if (saved && Number.isFinite(saved.iconSize)) state.iconSize = Math.max(ICON_MIN, Math.min(ICON_MAX, saved.iconSize));
+        if (saved && Number.isFinite(saved.cornerRadius)) state.cornerRadius = Math.max(0, Math.min(52, saved.cornerRadius));
+        if (saved && Number.isFinite(saved.stripLength)) state.stripLength = Math.max(16, Math.min(36, saved.stripLength));
+        if (saved && Number.isFinite(saved.stripOpacity)) state.stripOpacity = Math.max(40, Math.min(100, saved.stripOpacity));
+        if (saved && ["small", "medium", "large", "custom"].includes(saved.sizePreset)) state.sizePreset = saved.sizePreset;
+        if (saved && saved.sizeModelVersion !== 2 && state.sizePreset !== "custom") {
+          const oldPresets = { small: [220, 76], medium: [320, 112], large: [400, 136] };
+          const oldSize = oldPresets[state.sizePreset];
+          if (saved.sizeModelVersion !== 3 && oldSize && saved.width === oldSize[0] && saved.height === oldSize[1]) Object.assign(state, SIZE_PRESETS[state.sizePreset]);
+        }
+        if (saved && ["always", "hidden", "hover"].includes(saved.visibility)) state.visibility = saved.visibility === "hover" ? "hidden" : saved.visibility;
+        state.hidden = state.visibility === "hidden";
+        if (saved && ["off", "inner", "outer"].includes(saved.circleMode)) state.circleMode = saved.circleMode;
+        if (saved && saved.services) {
+          state.services = { ...state.services, ...saved.services };
+          if (typeof saved.services.system === "boolean") METRIC_IDS.forEach((id) => { if (typeof saved.services[id] !== "boolean") state.services[id] = saved.services.system; });
+          delete state.services.system;
+        }
+        if (saved && typeof saved.showDragHandle === "boolean") state.showDragHandle = saved.showDragHandle;
+        if (saved && typeof saved.startup === "boolean") state.startup = saved.startup;
+        if (saved && typeof saved.notifications === "boolean") state.notifications = saved.notifications;
+        if (saved && ["tray", "none"].includes(saved.tray)) state.tray = saved.tray;
+        if (saved && ["system", "zh-CN", "en-US"].includes(saved.language)) state.language = saved.language;
+        if (saved && Array.isArray(saved.todoItems) && saved.todoItems.length <= 200 && saved.todoItems.every((item) => Number.isInteger(item.id) && typeof item.text === "string" && typeof item.done === "boolean")) {
+          state.todoItems = saved.todoItems.map((item) => ({ id: item.id, text: item.text.slice(0, 2000), done: item.done }));
+          state.nextTodoId = Math.max(0, ...state.todoItems.map((item) => item.id)) + 1;
+        }
+      } catch (_) {}
+      const query = new URLSearchParams(window.location.search);
+      const previewTheme = query.get("theme");
+      if (["system", "light", "dark"].includes(previewTheme)) state.theme = previewTheme;
+    }
+    function saveState() {
+      try {
+        localStorage.setItem("widget-platform-preview", JSON.stringify({
+          order: state.order, theme: state.theme, edge: state.edge,
+          edgeOffsets: state.edgeOffsets, length: state.length, thickness: state.thickness,
+          iconSize: state.iconSize, sizeModelVersion: 3,
+          cornerRadius: state.cornerRadius,
+          stripLength: state.stripLength, stripOpacity: state.stripOpacity, sizePreset: state.sizePreset,
+          visibility: state.visibility, circleMode: state.circleMode,
+          services: state.services, showDragHandle: state.showDragHandle,
+          startup: state.startup, notifications: state.notifications,
+          tray: state.tray, language: state.language, todoItems: state.todoItems
+        }));
+      } catch (_) {}
+    }
+    function effectiveTheme() {
+      if (state.theme !== "system") return state.theme;
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    function updateTheme() {
+      const resolved = effectiveTheme();
+      document.documentElement.dataset.theme = resolved;
+      const label = state.theme === "system" ? "跟随系统 · " + (resolved === "dark" ? "深色" : "浅色") : (resolved === "dark" ? "深色" : "浅色");
+      document.getElementById("themeReadout").textContent = label;
+    }
+    function moduleValue(id) {
+      if (id === "todo") return todoCompletedCount() + " / " + state.todoItems.length;
+      if (id === "focus") return state.timerStatus === "paused" ? "暂停" : formatTime(timerRemaining());
+      if (METRIC_DEMOS[id]) return METRIC_DEMOS[id].value;
+      if (id === "media") return !state.mediaDemoActive ? "暂无会话" : state.mediaDemoPlaying ? "正在播放 · 可暂停" : "已暂停 · 可播放";
+      if (id === "weather") return state.weatherDemoActive ? "晴 · 22°C / 16°C（示例）" : "暂无天气数据";
+      return MODULES[id].value;
+    }
+    function todoCompletedCount() {
+      return state.todoItems.filter((item) => item.done).length;
+    }
+    function timerRemaining() {
+      return state.timerStatus === "running" ? Math.max(0, state.timerDeadlineAt - Date.now()) : state.timerRemainingMs;
+    }
+    function formatTime(ms) {
+      const seconds = Math.ceil(ms / 1000);
+      return String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
+    }
+    // Every current and future module supplies one state-derived symbol, accessible label, and optional progress ring.
+    function modulePresentation(id) {
+      if (id === "todo") return { symbol: state.displayPhase % 2 ? todoCompletedCount() + "/" + state.todoItems.length : "✓", kind: state.displayPhase % 2 ? "readout" : "", progress: state.todoItems.length ? Math.round(todoCompletedCount() / state.todoItems.length * 100) : 0, label: "待办，已完成 " + moduleValue("todo") };
+      if (id === "focus") {
+        const complete = state.timerStatus === "complete";
+        return { symbol: complete ? "🔔" : state.timerStatus === "running" ? formatTime(timerRemaining()) : "◷", kind: complete ? "is-bell" : state.timerStatus === "running" ? "readout timer-readout" : "", progress: complete ? 100 : Math.round((1 - timerRemaining() / (25 * 60 * 1000)) * 100), label: "专注，" + (complete ? "计时结束" : moduleValue("focus")) };
+      }
+      if (METRIC_DEMOS[id]) {
+        const metric = METRIC_DEMOS[id];
+        return { symbol: MODULES[id].icon, kind: id === "cpu" || id === "gpu" ? "wordmark" : "", progress: metric.progress, label: MODULES[id].label + "，" + metric.value + "，" + metric.detail + "，示例数据", metric: true };
+      }
+      if (id === "media") return { symbol: !state.mediaDemoActive ? "♫" : state.mediaDemoPlaying ? "Ⅱ" : "▶", kind: "", progress: 0, label: "媒体，" + moduleValue("media") };
+      if (id === "weather") return { symbol: !state.weatherDemoActive ? "?" : state.displayPhase % 2 === 0 ? "☀" : "22/16", kind: state.weatherDemoActive && state.displayPhase % 2 ? "readout" : "", progress: 0, label: "天气，" + moduleValue("weather") };
+      return { symbol: MODULES[id].icon, kind: "", progress: 0, label: MODULES[id].label };
+    }
+    function renderDock() {
+      moduleRow.innerHTML = state.order.map((id) => {
+        const view = modulePresentation(id);
+        return '<button class="module-button" type="button" data-module="' + id + '" aria-label="' + escapeHtml(view.label) + '" aria-expanded="' + (state.activePanelId === id) + '">' +
+          '<span class="module-orbit' + (view.metric ? ' has-metric-ring' : '') + '" style="--ring-progress:' + view.progress + '%"><span class="module-symbol' + (view.kind ? ' ' + view.kind : '') + '" aria-hidden="true">' + view.symbol + '</span></span></button>';
+      }).join("");
+      moduleRow.querySelectorAll("[data-module]").forEach((button) => {
+        button.addEventListener("mouseenter", () => showPopover(button.dataset.module));
+        button.addEventListener("focus", () => {
+          if (suppressNextFocusPreview) { suppressNextFocusPreview = false; return; }
+          showPopover(button.dataset.module);
+        });
+        button.addEventListener("mouseleave", scheduleHide);
+        button.addEventListener("blur", scheduleHide);
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const id = button.dataset.module;
+          if (state.activePanelId === id) closeActivityPanel();
+          else openActivityPanel(id);
+        });
+      });
+      placePopover();
+      syncDock();
+      updateModuleSelection();
+    }
+    function setDockOrientation(edge) {
+      dockRoot.dataset.edge = edge;
+    }
+    function clampEdgeOffset(edge, value, dockLength, stageRect) {
+      const stageLength = edge === "top" || edge === "bottom" ? stageRect.width : stageRect.height;
+      const controlClearance = Math.min(68, Math.max(3, (stageLength - dockLength) / 2));
+      const margin = Math.min(.5, (dockLength / 2 + controlClearance) / stageLength);
+      return Math.max(margin, Math.min(1 - margin, Number.isFinite(value) ? value : .5));
+    }
+    function dockHitSize() {
+      return Math.max(44, state.iconSize + (state.circleMode === "outer" ? 14 : 4));
+    }
+    function minimumLength(count, hitSize = dockHitSize()) {
+      return count * hitSize + Math.max(0, count - 1) * DOCK_GAP + 2 * DOCK_PADDING + DOCK_BORDER;
+    }
+    function computeDockLayout(edge = state.edge) {
+      const horizontal = edge === "top" || edge === "bottom";
+      const stageRect = stage.getBoundingClientRect();
+      const hitSize = dockHitSize();
+      const count = Math.max(1, state.order.length);
+      const stageLength = horizontal ? stageRect.width : stageRect.height;
+      const availableAlong = Math.max(minimumLength(1, hitSize), stageLength - 136);
+      const preferredAlong = state.length;
+      const preferredAcross = state.thickness;
+      const along = Math.min(Math.max(preferredAlong, minimumLength(count, hitSize)), availableAlong);
+      const itemsPerLine = Math.min(count, Math.max(1, Math.floor((along - 2 * DOCK_PADDING - DOCK_BORDER + DOCK_GAP) / (hitSize + DOCK_GAP))));
+      const lineCount = Math.ceil(count / itemsPerLine);
+      const requiredAcross = minimumLength(lineCount, hitSize);
+      const across = Math.max(preferredAcross, requiredAcross);
+      return { horizontal, along, across, hitSize, itemsPerLine, lineCount, requiredAcross, availableAlong, minimumAlong: minimumLength(count, hitSize) };
+    }
+    function applyDockPlacement() {
+      const stageRect = stage.getBoundingClientRect();
+      const layout = computeDockLayout();
+      const offset = clampEdgeOffset(state.edge, Number(state.edgeOffsets[state.edge]), layout.along, stageRect);
+      dockRoot.style.setProperty("--dock-width", layout.along + "px");
+      dockRoot.style.setProperty("--dock-height", layout.across + "px");
+      dockRoot.style.setProperty("--dock-side-length", layout.along + "px");
+      dockRoot.style.setProperty("--dock-side-thickness", layout.across + "px");
+      dockRoot.style.setProperty("--dock-thickness", layout.across + "px");
+      dockRoot.style.setProperty("--dock-along-size", layout.along + "px");
+      dockRoot.style.setProperty("--dock-module-count", String(Math.max(1, state.order.length)));
+      dockRoot.style.setProperty("--dock-hit-size", layout.hitSize + "px");
+      dockRoot.style.setProperty("--dock-orbit-size", state.iconSize + "px");
+      dockRoot.style.setProperty("--dock-items-per-line", String(layout.itemsPerLine));
+      dockRoot.style.setProperty("--dock-line-count", String(layout.lineCount));
+      dockRoot.style.setProperty("--dock-corner-radius", state.cornerRadius + "px");
+      dockRoot.style.setProperty("--dock-strip-length", state.stripLength + "px");
+      dockRoot.style.setProperty("--dock-strip-opacity", String(state.stripOpacity / 100));
+      setDockOrientation(state.edge);
+      dockRoot.style.left = "auto";
+      dockRoot.style.right = "auto";
+      dockRoot.style.top = "auto";
+      dockRoot.style.bottom = "auto";
+      if (state.edge === "top") {
+        dockRoot.style.left = (offset * 100) + "%";
+        dockRoot.style.top = "0px";
+        dockRoot.style.transform = "translateX(-50%)";
+      } else if (state.edge === "bottom") {
+        dockRoot.style.left = (offset * 100) + "%";
+        dockRoot.style.bottom = "42px";
+        dockRoot.style.transform = "translateX(-50%)";
+      } else if (state.edge === "left") {
+        dockRoot.style.left = "0px";
+        dockRoot.style.top = (offset * 100) + "%";
+        dockRoot.style.transform = "translateY(-50%)";
+      } else {
+        dockRoot.style.right = "0px";
+        dockRoot.style.top = (offset * 100) + "%";
+        dockRoot.style.transform = "translateY(-50%)";
+      }
+      return offset;
+    }
+    function syncDock() {
+      const offset = applyDockPlacement();
+      dockRoot.dataset.visibility = state.visibility;
+      dockRoot.dataset.ring = state.circleMode;
+      dockRoot.classList.toggle("is-hidden", state.hidden);
+      document.getElementById("dragControl").hidden = !state.showDragHandle;
+      const restoreStrip = document.getElementById("restoreStrip");
+      restoreStrip.dataset.edge = state.edge;
+      restoreStrip.style.left = "";
+      restoreStrip.style.top = "";
+      if (state.edge === "top" || state.edge === "bottom") restoreStrip.style.left = (offset * 100) + "%";
+      else restoreStrip.style.top = (offset * 100) + "%";
+      restoreStrip.hidden = !state.hidden;
+      document.querySelectorAll("[data-preview-edge]").forEach((button) => button.classList.toggle("is-selected", button.dataset.previewEdge === state.edge));
+      if (state.activePanelId) placeActivityPanel();
+      if (!settingsOverlay.hidden) placeSettings();
+    }
+    function popoverMarkup(id) {
+      const item = MODULES[id];
+      const glance = {
+        todo: [moduleValue("todo"), "已完成 / 全部任务。点击进入列表。"],
+        focus: [moduleValue("focus"), state.timerStatus === "running" ? "专注进行中，收起面板后继续。" : state.timerStatus === "paused" ? "计时已暂停，可从面板继续。" : "准备开始 25 分钟专注。"],
+        cpu: ["CPU " + moduleValue("cpu"), "处理器占用 · 静态演示读数"],
+        gpu: ["GPU " + moduleValue("gpu"), "图形处理器占用 · 静态演示读数"],
+        temperature: [moduleValue("temperature"), "硬件温度 · 圆环按 90°C 演示阈值映射"],
+        memory: [moduleValue("memory"), "内存占用 · 静态演示读数"],
+        media: [state.mediaDemoActive ? (state.mediaDemoPlaying ? "正在播放" : "已暂停") : "暂无会话", state.mediaDemoActive ? "可在这里直接播放或暂停；单击圆形图标进入面板。" : "媒体状态尚未接入，可启用演示会话。"],
+        weather: [state.weatherDemoActive ? "晴 · 22°C / 16°C" : "暂无天气", state.weatherDemoActive ? "示例天气，非实时；图标与高低温交替显示。" : "天气来源尚未接入，可启用示例天气。"]
+      }[id];
+      const quickAction = id === "media" && state.mediaDemoActive ? '<button class="action-button" type="button" data-quick-action="media-toggle" aria-label="' + (state.mediaDemoPlaying ? '暂停演示音乐' : '播放演示音乐') + '">' + (state.mediaDemoPlaying ? 'Ⅱ 暂停' : '▶ 播放') + '</button>' : '';
+      const content = '<div class="preview-stat">' + glance[0] + '</div><p class="preview-copy">' + glance[1] + '</p>' + quickAction + '<div class="preview-open">单击打开' + item.label + '面板 →</div>';
+      return '<div class="popover-head"><div class="popover-mark">' + item.icon + '</div><div class="popover-title"><strong>' + item.label + '</strong><span>' + item.detail + '</span></div><span class="sample-pill">示例</span></div>' +
+        '<div class="popover-content">' + content + '</div><div class="popover-foot"><span>示例数据 · 非实时</span><span>悬停概况</span></div>';
+    }
+    function showPopover(id) {
+      if (!MODULES[id] || !state.order.includes(id) || state.activePanelId || !settingsOverlay.hidden) return;
+      window.clearTimeout(hideTimer);
+      state.hoveredId = id;
+      popover.innerHTML = popoverMarkup(id);
+      popover.classList.add("is-visible");
+      popover.classList.remove("is-above");
+      popover.removeAttribute("hidden");
+      moduleRow.querySelectorAll(".module-button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.module === id);
+      });
+      placePopover();
+    }
+    function placePopover() {
+      if (!state.hoveredId || !popover.classList.contains("is-visible")) return;
+      const button = moduleRow.querySelector('[data-module="' + state.hoveredId + '"]');
+      if (!button) return;
+      const icon = button.querySelector(".module-orbit");
+      const stageRect = stage.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+      const iconRect = icon ? icon.getBoundingClientRect() : buttonRect;
+      const rootRect = dockRoot.getBoundingClientRect();
+      const width = Math.min(286, stageRect.width - 28);
+      popover.style.width = width + "px";
+      const anchorX = buttonRect.left + buttonRect.width / 2 - stageRect.left;
+      const estimatedHeight = popover.offsetHeight || 230;
+      let left = anchorX - width / 2;
+      let top = 0;
+      let placeAbove = false;
+      if (state.edge === "top") {
+        top = rootRect.bottom - stageRect.top + 13;
+        placeAbove = top + estimatedHeight > stageRect.height - 52 && rootRect.top - stageRect.top > estimatedHeight + 24;
+        if (placeAbove) top = rootRect.top - stageRect.top - estimatedHeight - 12;
+      } else if (state.edge === "bottom") {
+        top = rootRect.top - stageRect.top - estimatedHeight - 13;
+        placeAbove = true;
+      } else {
+        const centerY = iconRect.top + iconRect.height / 2 - stageRect.top;
+        top = centerY - estimatedHeight / 2;
+        left = state.edge === "left" ? rootRect.right - stageRect.left + 13 : rootRect.left - stageRect.left - width - 13;
+      }
+      left = Math.max(14, Math.min(stageRect.width - width - 14, left));
+      top = Math.max(14, Math.min(stageRect.height - estimatedHeight - 52, top));
+      popover.style.left = left + "px";
+      popover.style.top = top + "px";
+      popover.style.setProperty("--arrow-x", Math.max(18, Math.min(width - 18, anchorX - left)) + "px");
+      popover.style.setProperty("--arrow-y", Math.max(24, Math.min(estimatedHeight - 24, iconRect.top + iconRect.height / 2 - stageRect.top - top)) + "px");
+      popover.classList.toggle("is-side-left", state.edge === "left");
+      popover.classList.toggle("is-side-right", state.edge === "right");
+      popover.classList.toggle("is-above", placeAbove);
+    }
+    function scheduleHide() {
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => closePopover(), 170);
+    }
+    function closePopover() {
+      state.hoveredId = null;
+      popover.classList.remove("is-visible", "is-above");
+      popover.setAttribute("hidden", "");
+      updateModuleSelection();
+    }
+    function updateModuleSelection() {
+      moduleRow.querySelectorAll(".module-button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.module === state.activePanelId || button.dataset.module === state.hoveredId);
+        button.setAttribute("aria-expanded", String(button.dataset.module === state.activePanelId));
+      });
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+    }
+    function panelMarkup(id) {
+      if (id === "todo") {
+        const items = state.todoItems.map((item, index) => '<div class="activity-task' + (item.done ? ' is-done' : '') + '" data-task-id="' + item.id + '"><button class="task-drag" type="button" data-task-drag="' + item.id + '" aria-label="拖动调整第 ' + (index + 1) + ' 项优先级；键盘上下方向键也可调整" title="拖动排序；或用方向键">⠿</button><span class="task-priority">' + (index + 1) + '</span><button class="task-toggle" type="button" data-task-toggle="' + item.id + '" aria-label="' + (item.done ? '取消完成 ' : '完成 ') + escapeHtml(item.text) + '" aria-pressed="' + item.done + '">' + (item.done ? '✓' : '') + '</button><span class="task-text">' + escapeHtml(item.text) + '</span><button class="task-delete" type="button" data-task-delete="' + item.id + '" aria-label="删除 ' + escapeHtml(item.text) + '">×</button></div>').join("");
+        return '<div class="activity-section"><h3>今日进度</h3><div class="todo-progress"><span>已完成</span><strong>' + moduleValue("todo") + '</strong></div><div class="progress-track"><i style="width:' + (state.todoItems.length ? todoCompletedCount() / state.todoItems.length * 100 : 0) + '%"></i></div></div><div class="activity-section"><h3>添加待办</h3><form class="activity-input-row" id="todoForm"><input class="activity-input" id="todoInput" type="text" maxlength="2000" placeholder="输入一项任务" aria-label="新待办"><button class="action-button primary" type="submit">添加</button></form></div><div class="activity-section"><h3>任务列表</h3><p class="activity-note">从左侧手柄拖动调整优先级，键盘可用上下方向键。</p><div class="activity-list">' + (items || '<p class="activity-note">还没有任务。</p>') + '</div></div>';
+      }
+      if (id === "focus") {
+        const label = ({ idle: "准备开始", running: "专注中", paused: "已暂停", complete: "本轮已结束" })[state.timerStatus];
+        const primary = state.timerStatus === "running" ? "暂停" : state.timerStatus === "paused" ? "继续" : "开始专注";
+        const hint = state.timerStatus === "complete" ? "本轮结束，卡片显示摇晃铃铛。" : state.timerStatus === "running" ? "关闭面板后，本页中的计时继续。" : state.timerStatus === "paused" ? "计时已暂停，可继续或重置。" : "开始后，卡片会显示倒计时。";
+        return '<div class="activity-section"><h3>本轮专注</h3><div class="panel-hero"><small>' + label + '</small><strong id="panelTimerValue">' + formatTime(timerRemaining()) + '</strong><small>' + hint + '</small><div class="panel-actions"><button class="action-button primary" type="button" data-panel-action="timer-toggle">' + primary + '</button><button class="action-button" type="button" data-panel-action="timer-reset">重置</button><button class="action-button" type="button" data-panel-action="timer-preview-complete">预览结束提醒</button></div></div></div><p class="activity-note">此处演示界面与状态回显；正式计时与恢复由后续产品功能承担。</p>';
+      }
+      if (METRIC_DEMOS[id]) {
+        const metric = METRIC_DEMOS[id];
+        return '<div class="activity-section"><h3>' + MODULES[id].label + ' · 示例</h3><div class="panel-data"><div class="panel-data-row"><span>' + MODULES[id].label + '</span><strong>' + metric.value + '</strong></div><div class="progress-track"><i style="width:' + metric.progress + '%"></i></div></div></div><p class="activity-note">' + (id === "temperature" ? "温度保留 °C 单位；圆环仅按 90°C 演示阈值映射，不表示占用率。" : "静态演示读数，尚未连接 Windows 性能数据。") + '</p>';
+      }
+      if (id === "media") return '<div class="activity-section"><h3>媒体会话 · 演示</h3><div class="panel-data"><p class="activity-note">' + (state.mediaDemoActive ? (state.mediaDemoPlaying ? '示例曲目正在播放。悬停卡片可快速暂停。' : '示例曲目已暂停。悬停卡片可快速播放。') : '当前没有媒体会话。可启用演示会话查看播放状态。') + '</p><button class="action-button primary" type="button" data-panel-action="media-session">' + (state.mediaDemoActive ? '结束演示会话' : '启用演示会话') + '</button>' + (state.mediaDemoActive ? '<button class="action-button" type="button" data-panel-action="media-toggle">' + (state.mediaDemoPlaying ? 'Ⅱ 暂停' : '▶ 播放') + '</button>' : '') + '</div></div><p class="activity-note">仅演示图标和控制反馈，不会控制系统播放器。</p>';
+      return '<div class="activity-section"><h3>天气 · 演示</h3><div class="panel-data"><p class="activity-note">' + (state.weatherDemoActive ? '晴，最高 22°C，最低 16°C。此为示例天气，并非实时结果。' : '天气数据尚未接入；未获得真实天气时不显示虚构的实时数值。') + '</p><button class="action-button primary" type="button" data-panel-action="weather-demo">' + (state.weatherDemoActive ? '关闭示例天气' : '显示示例天气') + '</button></div></div>';
+    }
+    function renderActivityPanel() {
+      if (!state.activePanelId) return;
+      const item = MODULES[state.activePanelId];
+      document.getElementById("activityTitle").textContent = item.label;
+      document.getElementById("activitySubtitle").textContent = item.detail;
+      document.getElementById("activityBody").innerHTML = panelMarkup(item.id);
+      document.getElementById("activityFootState").textContent = item.label + "面板";
+      placeActivityPanel();
+    }
+    function openActivityPanel(id) {
+      if (!MODULES[id] || !state.order.includes(id)) return;
+      closePopover();
+      settingsOverlay.hidden = true;
+      state.activePanelId = id;
+      activityPanel.hidden = false;
+      renderActivityPanel();
+      activityPanel.classList.add("is-visible");
+      updateModuleSelection();
+      syncDock();
+      document.getElementById("activityBack").focus();
+    }
+    function closeActivityPanel() {
+      const oldId = state.activePanelId;
+      state.activePanelId = null;
+      activityPanel.classList.remove("is-visible");
+      activityPanel.hidden = true;
+      updateModuleSelection();
+      syncDock();
+      const button = oldId && moduleRow.querySelector('[data-module="' + oldId + '"]');
+      if (button && document.activeElement !== button) { suppressNextFocusPreview = true; button.focus({ preventScroll: true }); }
+    }
+    function placeInward(element, preferredWidth, preferredHeight) {
+      if (element.hidden) return;
+      const stageRect = stage.getBoundingClientRect();
+      if (element.classList.contains("settings-window") && stageRect.width < 650) {
+        element.style.width = (stageRect.width - 28) + "px";
+        element.style.height = (stageRect.height - 64) + "px";
+        element.style.left = "14px";
+        element.style.top = "12px";
+        return;
+      }
+      const side = state.edge === "left" || state.edge === "right";
+      const dockThickness = computeDockLayout().across;
+      const width = Math.min(preferredWidth, Math.max(220, stageRect.width - (side ? dockThickness + 42 : 28)));
+      const availableHeight = state.edge === "top" ? stageRect.height - dockThickness - 64 : state.edge === "bottom" ? stageRect.height - dockThickness - 64 : stageRect.height - 64;
+      const height = Math.min(preferredHeight, Math.max(260, availableHeight));
+      const centerX = Number(state.edgeOffsets[state.edge] || .5) * stageRect.width;
+      let left = side ? state.edge === "left" ? dockThickness + 12 : stageRect.width - dockThickness - width - 12 : centerX - width / 2;
+      let top = state.edge === "top" ? dockThickness + 12 : state.edge === "bottom" ? stageRect.height - 42 - dockThickness - height - 12 : (stageRect.height - height) / 2;
+      left = Math.max(14, Math.min(stageRect.width - width - 14, left));
+      top = Math.max(12, Math.min(stageRect.height - height - 52, top));
+      element.style.width = width + "px";
+      element.style.height = height + "px";
+      element.style.left = left + "px";
+      element.style.top = top + "px";
+    }
+    function placeActivityPanel() {
+      const heights = { todo: 500, focus: 390, cpu: 310, gpu: 310, temperature: 330, memory: 310, media: 330, weather: 310 };
+      placeInward(activityPanel, 390, heights[state.activePanelId] || 390);
+    }
+    function placeSettings() {
+      placeInward(document.querySelector(".settings-window"), 610, 650);
+    }
+    function updateDockValues() {
+      moduleRow.querySelectorAll(".module-button").forEach((button) => {
+        const id = button.dataset.module;
+        const view = modulePresentation(id);
+        button.setAttribute("aria-label", view.label);
+        const ring = button.querySelector(".module-orbit");
+        ring.style.setProperty("--ring-progress", view.progress + "%");
+        ring.classList.toggle("has-metric-ring", !!view.metric);
+        const symbol = ring.querySelector(".module-symbol");
+        if (symbol.textContent !== view.symbol) symbol.textContent = view.symbol;
+        symbol.className = "module-symbol" + (view.kind ? " " + view.kind : "");
+      });
+      if (state.hoveredId) popover.innerHTML = popoverMarkup(state.hoveredId);
+    }
+    function moveTodoTask(sourceId, targetId, after = false) {
+      if (sourceId === targetId) return false;
+      const from = state.todoItems.findIndex((item) => item.id === sourceId);
+      if (from < 0) return false;
+      const [moved] = state.todoItems.splice(from, 1);
+      const to = state.todoItems.findIndex((item) => item.id === targetId);
+      if (to < 0) { state.todoItems.splice(from, 0, moved); return false; }
+      state.todoItems.splice(to + (after ? 1 : 0), 0, moved);
+      saveState();
+      renderActivityPanel();
+      updateDockValues();
+      return true;
+    }
+    function clearTaskDrag() {
+      draggedTaskId = null;
+      activityPanel.querySelectorAll(".activity-task").forEach((row) => row.classList.remove("is-dragging", "drop-before", "drop-after"));
+    }
+    function startTimerTick() {
+      window.clearInterval(timerTick);
+      timerTick = window.setInterval(() => {
+        if (state.timerStatus !== "running") return;
+        if (timerRemaining() <= 0) {
+          state.timerStatus = "complete";
+          state.timerRemainingMs = 0;
+          state.timerDeadlineAt = null;
+          window.clearInterval(timerTick);
+          if (state.activePanelId === "focus") renderActivityPanel();
+        } else if (state.activePanelId === "focus") {
+          const value = document.getElementById("panelTimerValue");
+          if (value) value.textContent = formatTime(timerRemaining());
+        }
+        updateDockValues();
+      }, 1000);
+    }
+    popover.addEventListener("mouseenter", () => window.clearTimeout(hideTimer));
+    popover.addEventListener("mouseleave", scheduleHide);
+    popover.addEventListener("click", (event) => {
+      if (!event.target.closest('[data-quick-action="media-toggle"]')) return;
+      event.stopPropagation();
+      state.mediaDemoPlaying = !state.mediaDemoPlaying;
+      updateDockValues();
+      if (state.activePanelId === "media") renderActivityPanel();
+    });
+    document.getElementById("activityBack").addEventListener("click", closeActivityPanel);
+    activityPanel.addEventListener("submit", (event) => {
+      if (event.target.id !== "todoForm") return;
+      event.preventDefault();
+      const input = document.getElementById("todoInput");
+      const text = input.value.trim();
+      if (!text) { input.focus(); return; }
+      state.todoItems.push({ id: state.nextTodoId++, text, done: false });
+      saveState();
+      renderActivityPanel();
+      updateDockValues();
+      document.getElementById("todoInput").focus();
+    });
+    activityPanel.addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-task-toggle]");
+      const remove = event.target.closest("[data-task-delete]");
+      if (toggle || remove) {
+        const id = Number((toggle || remove).dataset.taskToggle || (toggle || remove).dataset.taskDelete);
+        const item = state.todoItems.find((entry) => entry.id === id);
+        if (toggle && item) item.done = !item.done;
+        if (remove) state.todoItems = state.todoItems.filter((entry) => entry.id !== id);
+        saveState();
+        renderActivityPanel();
+        updateDockValues();
+        return;
+      }
+      const action = event.target.closest("[data-panel-action]");
+      if (!action) return;
+      if (action.dataset.panelAction === "media-session") {
+        state.mediaDemoActive = !state.mediaDemoActive;
+        state.mediaDemoPlaying = state.mediaDemoActive;
+      } else if (action.dataset.panelAction === "media-toggle") {
+        state.mediaDemoPlaying = !state.mediaDemoPlaying;
+      } else if (action.dataset.panelAction === "weather-demo") {
+        state.weatherDemoActive = !state.weatherDemoActive;
+      } else if (action.dataset.panelAction === "timer-preview-complete") {
+        window.clearInterval(timerTick);
+        state.timerStatus = "complete";
+        state.timerRemainingMs = 0;
+        state.timerDeadlineAt = null;
+      } else if (action.dataset.panelAction === "timer-toggle") {
+        if (state.timerStatus === "running") {
+          state.timerRemainingMs = timerRemaining();
+          state.timerDeadlineAt = null;
+          state.timerStatus = "paused";
+          window.clearInterval(timerTick);
+        } else {
+          if (state.timerStatus === "complete") state.timerRemainingMs = 25 * 60 * 1000;
+          state.timerDeadlineAt = Date.now() + state.timerRemainingMs;
+          state.timerStatus = "running";
+          startTimerTick();
+        }
+      } else if (action.dataset.panelAction === "timer-reset") {
+        window.clearInterval(timerTick);
+        state.timerStatus = "idle";
+        state.timerDeadlineAt = null;
+        state.timerRemainingMs = 25 * 60 * 1000;
+      }
+      renderActivityPanel();
+      updateDockValues();
+    });
+    let taskPointer = null;
+    activityPanel.addEventListener("pointerdown", (event) => {
+      const handle = event.target.closest("[data-task-drag]");
+      if (!handle || event.button !== 0) return;
+      event.preventDefault();
+      draggedTaskId = Number(handle.dataset.taskDrag);
+      taskPointer = { id: event.pointerId, handle, startX: event.clientX, startY: event.clientY, moved: false };
+      handle.setPointerCapture(event.pointerId);
+      handle.closest(".activity-task").classList.add("is-dragging");
+    });
+    activityPanel.addEventListener("pointermove", (event) => {
+      if (!taskPointer || taskPointer.id !== event.pointerId) return;
+      if (Math.hypot(event.clientX - taskPointer.startX, event.clientY - taskPointer.startY) > 5) taskPointer.moved = true;
+      const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-task-id]");
+      activityPanel.querySelectorAll(".activity-task").forEach((item) => item.classList.remove("drop-before", "drop-after"));
+      if (taskPointer.moved && row && Number(row.dataset.taskId) !== draggedTaskId) row.classList.add(event.clientY > row.getBoundingClientRect().top + row.offsetHeight / 2 ? "drop-after" : "drop-before");
+    });
+    activityPanel.addEventListener("pointerup", (event) => {
+      if (!taskPointer || taskPointer.id !== event.pointerId) return;
+      const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-task-id]");
+      const sourceId = draggedTaskId;
+      const moved = taskPointer.moved;
+      if (taskPointer.handle.hasPointerCapture(event.pointerId)) taskPointer.handle.releasePointerCapture(event.pointerId);
+      taskPointer = null;
+      clearTaskDrag();
+      if (moved && row) moveTodoTask(sourceId, Number(row.dataset.taskId), event.clientY > row.getBoundingClientRect().top + row.offsetHeight / 2);
+    });
+    activityPanel.addEventListener("pointercancel", () => { taskPointer = null; clearTaskDrag(); });
+    activityPanel.addEventListener("keydown", (event) => {
+      const handle = event.target.closest("[data-task-drag]");
+      if (!handle || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+      event.preventDefault();
+      const id = Number(handle.dataset.taskDrag);
+      const index = state.todoItems.findIndex((item) => item.id === id);
+      const adjacent = state.todoItems[index + (event.key === "ArrowUp" ? -1 : 1)];
+      if (adjacent && moveTodoTask(id, adjacent.id, event.key === "ArrowDown")) {
+        activityPanel.querySelector('[data-task-drag="' + id + '"]')?.focus();
+      }
+    });
+    dockRoot.addEventListener("mouseleave", () => { scheduleHide(); syncDock(); });
+    dockRoot.addEventListener("mouseenter", () => { window.clearTimeout(hideTimer); syncDock(); });
+    document.getElementById("settingsControl").addEventListener("mouseleave", (event) => event.currentTarget.classList.remove("is-suppressed"));
+    document.getElementById("settingsButton").addEventListener("click", openSettings);
+    document.getElementById("closeSettings").addEventListener("click", closeSettings);
+    settingsOverlay.addEventListener("click", (event) => { if (event.target === settingsOverlay) closeSettings(); });
+    document.getElementById("restoreStrip").addEventListener("click", () => {
+      state.hidden = false;
+      state.visibility = "always";
+      syncDock();
+      saveState();
+      if (!settingsOverlay.hidden) renderSettings();
+    });
+    settingsMain.addEventListener("click", handleSettingsClick);
+    document.querySelector(".settings-nav").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-tab]");
+      if (!button) return;
+      state.activeTab = button.dataset.tab;
+      renderSettings();
+    });
+    settingsMain.addEventListener("input", handleDimensionInput);
+    settingsMain.addEventListener("change", (event) => {
+      if (event.target.id === "languageSelect") {
+        state.language = event.target.value;
+        saveState();
+        renderSettings();
+      }
+    });
+    function openSettings() {
+      document.getElementById("settingsControl").classList.remove("is-suppressed");
+      if (state.activePanelId) closeActivityPanel();
+      closePopover();
+      settingsOverlay.hidden = false;
+      state.activeTab = "modules";
+      renderSettings();
+      syncDock();
+      document.getElementById("closeSettings").focus();
+    }
+    function closeSettings() {
+      settingsOverlay.hidden = true;
+      document.getElementById("settingsControl").classList.add("is-suppressed");
+      syncDock();
+      if (state.hidden) document.getElementById("restoreStrip").focus();
+      else dockRoot.focus({ preventScroll: true });
+    }
+    function renderSettings() {
+      const navLabels = {
+        modules: ["模块与顺序", "选择要显示的圆形图标，并调整摘要栏顺序。"],
+        services: ["服务与账号", "管理模块使用的数据来源与服务连接。"],
+        appearance: ["外观", "调整组件显示方式、尺寸、圆角、控制白条、主题和进度圆环。"],
+        behavior: ["位置与交互", "设置停靠边缘、拖动方式和隐藏后的唤回入口。"],
+        general: ["通用", "启动、托盘、语言、更新和应用信息。"]
+      };
+      document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("is-selected", button.dataset.tab === state.activeTab));
+      document.getElementById("settingsTitle").textContent = navLabels[state.activeTab][0];
+      document.getElementById("settingsSubtitle").textContent = navLabels[state.activeTab][1];
+      if (state.activeTab === "modules") renderModuleSettings();
+      else if (state.activeTab === "services") renderServicesSettings();
+      else if (state.activeTab === "appearance") renderAppearanceSettings();
+      else if (state.activeTab === "behavior") renderBehaviorSettings();
+      else renderGeneralSettings();
+      placeSettings();
+    }
+    function moduleSettingRow(id, index) {
+      const item = MODULES[id];
+      return '<div class="module-setting-row"><div class="setting-module-name"><span class="tiny-orbit">' + item.icon + '</span><span><strong>' + item.label + '</strong><small>' + item.description + '</small></span></div>' +
+        '<div class="order-controls"><button class="order-button" type="button" data-action="up" data-id="' + id + '" aria-label="上移 ' + item.label + '"' + (index === 0 ? ' disabled' : '') + '>↑</button><button class="order-button" type="button" data-action="down" data-id="' + id + '" aria-label="下移 ' + item.label + '"' + (index === state.order.length - 1 ? ' disabled' : '') + '>↓</button></div>' +
+        '<button class="module-toggle" type="button" data-action="remove" data-id="' + id + '" aria-label="隐藏 ' + item.label + '" aria-pressed="true"></button></div>';
+    }
+    function renderModuleSettings() {
+      const rows = state.order.map((id, index) => moduleSettingRow(id, index)).join("");
+      const available = Object.keys(MODULES).filter((id) => !state.order.includes(id));
+      const addRows = available.map((id) => '<div class="module-setting-row"><div class="setting-module-name"><span class="tiny-orbit">' + MODULES[id].icon + '</span><span><strong>' + MODULES[id].label + '</strong><small>' + MODULES[id].description + '</small></span></div><span class="sample-pill">预览</span><button class="add-module-button" type="button" data-action="add" data-id="' + id + '">添加</button></div>').join("");
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">显示的模块 <span class="sample-pill">' + state.order.length + ' 个</span></h2><p class="section-description">默认显示待办、专注和四项独立指标；顺序会同步到当前停靠边的摘要栏。</p><div class="setting-card">' + rows + '</div></section>' +
+        (available.length ? '<section class="settings-section"><h2 class="section-title">可添加模块</h2><p class="section-description">增加图标后，摘要栏会随模块数量伸展。</p><div class="setting-card">' + addRows + '</div></section>' : '') +
+        '<div class="settings-status"><i></i><span>顺序与显示数量已在此预览中即时更新。</span></div>';
+    }
+    function renderServicesSettings() {
+      const entries = [
+        ["todo", "本地待办", "本机任务数据 · 本地", "✓"],
+        ["focus", "专注计时", "本机计时状态 · 本地", "◷"],
+        ["cpu", "CPU", "处理器占用 · 示例读数", "CPU"],
+        ["gpu", "GPU", "图形处理器占用 · 示例读数", "GPU"],
+        ["temperature", "温度", "硬件温度 · 示例读数", "🌡"],
+        ["memory", "内存", "内存占用 · 示例读数", "▥"],
+        ["media", "媒体会话", "当前播放内容与控制", "♫"],
+        ["weather", "天气服务", "位置与天气信息", "☼"]
+      ];
+      const rows = entries.map(([id, name, note, icon]) => {
+        const connected = state.services[id];
+        const control = id === "todo" || id === "focus" || METRIC_DEMOS[id]
+          ? '<button class="settings-toggle" type="button" data-action="service-toggle" data-id="' + id + '" aria-pressed="' + connected + '" aria-label="切换 ' + name + '"></button>'
+          : '<button class="mini-action" type="button" data-action="service-connect" data-id="' + id + '">' + (connected ? "已连接" : "连接") + '</button>';
+        const status = METRIC_DEMOS[id] ? (connected ? "演示中" : "未启用") : (connected ? "已连接" : "未连接");
+        return '<div class="service-row"><span class="service-mark">' + icon + '</span><span><strong>' + name + '</strong><small>' + note + '</small></span><span class="status-label' + (connected ? ' ready' : '') + '">' + status + '</span>' + control + '</div>';
+      }).join("");
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">数据与服务</h2><p class="section-description">此预览只模拟连接状态，不会访问系统账户或外部服务。</p><div class="setting-card">' + rows + '</div></section>' +
+        '<section class="settings-section"><div class="setting-card"><div class="switch-row"><span><strong>允许模块通知</strong><small>服务状态变化时显示桌面通知。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="notifications" aria-pressed="' + state.notifications + '"></button></div></div></section>' +
+        '<div class="settings-status"><i></i><span>四项系统指标分别显示为独立图标；数据与连接状态均为演示。</span></div>';
+    }
+    function refreshSizeControls() {
+      const note = document.getElementById("sizeConstraintNote");
+      if (!note) return;
+      const layout = computeDockLayout();
+      const alongField = "length";
+      const acrossField = "thickness";
+      const minimums = { [alongField]: Math.round(Math.min(layout.minimumAlong, layout.availableAlong)), [acrossField]: Math.round(layout.requiredAcross) };
+      for (const field of [alongField, acrossField]) {
+        const range = document.getElementById(field + "Range");
+        const number = document.getElementById(field + "Number");
+        const shown = Math.max(minimums[field], state[field]);
+        for (const input of [range, number]) {
+          if (!input) continue;
+          input.min = String(minimums[field]);
+          input.value = String(shown);
+        }
+        const caption = range?.parentElement.querySelector("small");
+        if (caption) caption.textContent = minimums[field] + "–" + (field === alongField ? 720 : 240) + " px";
+      }
+      note.textContent = "当前实际：" + Math.round(layout.along) + " × " + Math.round(layout.across) + " px；" + state.order.length + " 个图标，每个 " + state.iconSize + " px" + (layout.lineCount > 1 ? "，空间受限时排成 " + layout.lineCount + (layout.horizontal ? " 排。" : " 列。") : "，保持单" + (layout.horizontal ? "排。" : "列。")) + "卡片尺寸不会缩小图标。";
+    }
+    function renderAppearanceSettings() {
+      const choices = [["system", "跟随系统"], ["light", "浅色"], ["dark", "深色"]];
+      const visibilityChoices = [["always", "始终显示"], ["hidden", "隐藏显示"]];
+      const ringChoices = [["off", "仅系统"], ["inner", "内侧"], ["outer", "外侧"]];
+      const sizeChoices = [["small", "小"], ["medium", "中"], ["large", "大"]];
+      const layout = computeDockLayout();
+      const alongField = "length";
+      const acrossField = "thickness";
+      const alongMin = Math.round(Math.min(layout.minimumAlong, layout.availableAlong));
+      const acrossMin = Math.round(layout.requiredAcross);
+      const dimensionControl = (field, label, min, max) => {
+        const shown = Math.max(min, state[field]);
+        return '<div class="dimension-field"><label for="' + field + 'Range">' + label + '</label>' +
+          '<input id="' + field + 'Number" data-dimension="' + field + '" type="number" min="' + min + '" max="' + max + '" step="1" value="' + shown + '" aria-label="' + label + '像素">' +
+          '<input id="' + field + 'Range" data-dimension="' + field + '" type="range" min="' + min + '" max="' + max + '" step="1" value="' + shown + '"><small>' + min + '–' + max + ' px</small></div>';
+      };
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">显示</h2><p class="section-description">隐藏时，卡片原位置的边缘保留一条白色提示条，点击即可重新显示。</p><div class="setting-segmented">' +
+        visibilityChoices.map(([value, label]) => '<button class="' + (state.visibility === value ? 'is-selected' : '') + '" type="button" data-action="visibility" data-value="' + value + '" aria-pressed="' + (state.visibility === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">卡片大小</h2><p class="section-description">四个停靠方向共用长边和厚度；空间允许时切换到左右仅旋转排列，空间不足则自动换行或换列。图标大小独立设置，卡片缩小时仍保留图标尺寸、间距和可点击区域。</p><div class="setting-segmented size-preset-row">' +
+        sizeChoices.map(([value, label]) => '<button class="' + (state.sizePreset === value ? 'is-selected' : '') + '" type="button" data-action="size-preset" data-value="' + value + '" aria-pressed="' + (state.sizePreset === value) + '">' + label + '</button>').join("") +
+        '</div><div class="setting-card"><div class="dimension-grid">' +
+        dimensionControl(alongField, "卡片长边", alongMin, 720) +
+        dimensionControl(acrossField, "卡片厚度", acrossMin, 240) +
+        '</div></div><p class="section-description" id="sizeConstraintNote" aria-live="polite"></p><div class="settings-footer-note"><button class="mini-action" type="button" data-action="reset-size">恢复默认尺寸</button><span>当前：' + (state.sizePreset === "custom" ? "自定义" : ({ small: "小", medium: "中", large: "大" })[state.sizePreset]) + '</span></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">图标大小</h2><p class="section-description">只改变圆形图标，不随卡片宽高自动缩放。</p><div class="setting-card">' +
+        '<div class="setting-slider-row"><label for="iconSizeRange">图标直径</label><output id="iconSizeValue" for="iconSizeRange">' + state.iconSize + ' px</output><input id="iconSizeRange" data-icon-size type="range" min="' + ICON_MIN + '" max="' + ICON_MAX + '" step="1" value="' + state.iconSize + '"><small>' + ICON_MIN + '–' + ICON_MAX + ' px；图标内符号保持可辨认</small></div>' +
+        '</div><div class="settings-footer-note"><button class="mini-action" type="button" data-action="reset-icon-size">恢复默认图标大小</button></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">卡片圆角</h2><p class="section-description">四个角使用相同半径；半径会受卡片短边限制。</p><div class="setting-card">' +
+        '<div class="setting-slider-row"><label for="cornerRadiusRange">圆角大小</label><output id="cornerRadiusValue" for="cornerRadiusRange">' + state.cornerRadius + ' px</output><input id="cornerRadiusRange" data-style-setting="cornerRadius" type="range" min="0" max="52" step="1" value="' + state.cornerRadius + '"><small>0–52 px</small></div>' +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">两侧控制白条</h2><p class="section-description">调整移动与设置入口的白条长度和透明度，悬停图标会朝卡片外侧展开。</p><div class="setting-card">' +
+        '<div class="setting-slider-row"><label for="stripLengthRange">白条长度</label><output id="stripLengthValue" for="stripLengthRange">' + state.stripLength + ' px</output><input id="stripLengthRange" data-style-setting="stripLength" type="range" min="16" max="36" step="1" value="' + state.stripLength + '"><small>16–36 px</small></div>' +
+        '<div class="setting-slider-row"><label for="stripOpacityRange">白条透明度</label><output id="stripOpacityValue" for="stripOpacityRange">' + state.stripOpacity + '%</output><input id="stripOpacityRange" data-style-setting="stripOpacity" type="range" min="40" max="100" step="1" value="' + state.stripOpacity + '"><small>数值越低，白条越透明</small></div>' +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">颜色主题</h2><p class="section-description">默认跟随 Windows；系统切换外观时，组件同步切换。</p><div class="theme-segmented">' +
+        choices.map(([value, label]) => '<button class="theme-choice' + (state.theme === value ? ' is-selected' : '') + '" type="button" data-action="theme" data-value="' + value + '" aria-pressed="' + (state.theme === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">进度圆环</h2><p class="section-description">CPU、GPU、温度、内存各自的圆环始终显示；这里选择其他模块的辅助进度环样式。</p><div class="setting-segmented">' +
+        ringChoices.map(([value, label]) => '<button class="' + (state.circleMode === value ? 'is-selected' : '') + '" type="button" data-action="circle-mode" data-value="' + value + '" aria-pressed="' + (state.circleMode === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<div class="settings-status"><i></i><span>当前主题：' + (state.theme === "system" ? "跟随系统 · " + (effectiveTheme() === "dark" ? "深色" : "浅色") : (state.theme === "dark" ? "深色" : "浅色")) + '</span></div>';
+      refreshSizeControls();
+    }
+    function renderBehaviorSettings() {
+      const edges = [["left", "左侧"], ["right", "右侧"], ["top", "顶部"], ["bottom", "底部"]];
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">停靠边缘</h2><p class="section-description">默认贴边显示；拖动手柄时会出现四边虚线预览区域。</p><div class="setting-segmented four">' +
+        edges.map(([value, label]) => '<button class="' + (state.edge === value ? 'is-selected' : '') + '" type="button" data-action="position" data-value="' + value + '" aria-pressed="' + (state.edge === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">边缘操作</h2><div class="setting-card">' +
+        '<div class="switch-row"><span><strong>显示移动手柄</strong><small>悬停左侧白条后显示拖动按钮。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="showDragHandle" aria-pressed="' + state.showDragHandle + '"></button></div>' +
+        '<div class="switch-row"><span><strong>拖动停靠</strong><small>松开在虚线框内会居中；框外会按松开位置贴近最近的边缘。</small></span></div>' +
+        '</div><div class="settings-footer-note">悬停图标查看概况，单击打开一个活动面板；按 Esc 或面板返回键回到摘要。</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">当前布局</h2><div class="setting-card"><div class="behavior-row"><div><strong>' + ({top:"顶部",right:"右侧",bottom:"底部",left:"左侧"})[state.edge] + '停靠</strong><small>重新居中会把组件放回当前边缘中央。</small></div><button class="mini-action" type="button" data-action="recenter">重新居中</button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">收起</h2><div class="setting-card"><div class="behavior-row"><div><strong>收起至原位置提示条</strong><small>主体收起后，同侧边缘保留小白条；点击可恢复。</small></div><button class="mini-action" type="button" data-action="hide-now">立即收起</button></div></div></section>' +
+        '<div class="settings-status"><i></i><span>当前停靠边：' + ({top:"顶部",right:"右侧",bottom:"底部",left:"左侧"})[state.edge] + '</span></div>';
+    }
+    function renderGeneralSettings() {
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">启动</h2><div class="setting-card"><div class="switch-row"><span><strong>登录时启动</strong><small>登录 Windows 后自动显示桌面组件。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="startup" aria-pressed="' + state.startup + '"></button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">应用图标</h2><div class="setting-card"><div class="behavior-row"><div><strong>托盘图标</strong><small>在系统托盘保留入口，或完全隐藏图标。</small></div><div class="setting-segmented"><button class="' + (state.tray === "tray" ? 'is-selected' : '') + '" type="button" data-action="tray" data-value="tray">系统托盘</button><button class="' + (state.tray === "none" ? 'is-selected' : '') + '" type="button" data-action="tray" data-value="none">不显示</button></div></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">语言</h2><div class="setting-card"><div class="behavior-row"><div><strong>界面语言</strong><small>默认跟随系统语言。</small></div><select id="languageSelect" class="setting-select" aria-label="界面语言"><option value="system"' + (state.language === "system" ? ' selected' : '') + '>跟随系统</option><option value="zh-CN"' + (state.language === "zh-CN" ? ' selected' : '') + '>简体中文</option><option value="en-US"' + (state.language === "en-US" ? ' selected' : '') + '>English</option></select></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">更新</h2><div class="setting-card"><div class="behavior-row"><div><strong>版本 0.1.0 · UI 预览</strong><small>' + state.updateStatus + '</small></div><button class="mini-action" type="button" data-action="check-updates">检查更新</button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">数据与关于</h2><div class="setting-card"><div class="behavior-row"><div><strong>数据文件夹</strong><small>' + state.folderStatus + '</small></div><button class="mini-action" type="button" data-action="open-folder">打开文件夹</button></div><div class="behavior-row"><div><strong>Widget Platform</strong><small>桌面小组件 · 交互概念预览</small></div><span class="sample-pill">版本 0.1.0</span></div></div></section>' +
+        '<div class="settings-status warning"><i></i><span>设置交互只保存在当前浏览器，不会修改系统启动项或真实服务。</span></div>';
+    }
+    function handleDimensionInput(event) {
+      const styleSetting = event.target.dataset.styleSetting;
+      if (styleSetting) {
+        const limits = { cornerRadius: [0, 52], stripLength: [16, 36], stripOpacity: [40, 100] };
+        const [min, max] = limits[styleSetting];
+        const value = Math.max(min, Math.min(max, Number(event.target.value) || 0));
+        state[styleSetting] = value;
+        const output = document.getElementById(styleSetting === "cornerRadius" ? "cornerRadiusValue" : styleSetting === "stripLength" ? "stripLengthValue" : "stripOpacityValue");
+        if (output) output.textContent = value + (styleSetting === "stripOpacity" ? "%" : " px");
+        syncDock();
+        saveState();
+        return;
+      }
+      if (event.target.dataset.iconSize !== undefined) {
+        state.iconSize = Math.max(ICON_MIN, Math.min(ICON_MAX, Number(event.target.value) || ICON_MIN));
+        document.getElementById("iconSizeValue").textContent = state.iconSize + " px";
+        syncDock();
+        refreshSizeControls();
+        saveState();
+        return;
+      }
+      const field = event.target.dataset.dimension;
+      if (!["length", "thickness"].includes(field)) return;
+      const min = Number(event.target.min) || 68;
+      const max = field === "length" ? 720 : 240;
+      const value = Math.max(min, Math.min(max, Number(event.target.value) || min));
+      state[field] = value;
+      state.sizePreset = "custom";
+      document.querySelectorAll(".size-preset-row button").forEach((button) => { button.classList.remove("is-selected"); button.setAttribute("aria-pressed", "false"); });
+      const sizeFoot = document.querySelector("#sizeConstraintNote + .settings-footer-note span");
+      if (sizeFoot) sizeFoot.textContent = "当前：自定义";
+      syncDock();
+      refreshSizeControls();
+      saveState();
+    }
+    function handleSettingsClick(event) {
+      const button = event.target.closest("[data-action]");
+      if (!button || button.disabled) return;
+      const id = button.dataset.id;
+      const index = state.order.indexOf(id);
+      if (button.dataset.action === "add" && !state.order.includes(id)) state.order.push(id);
+      if (button.dataset.action === "remove" && index >= 0) state.order.splice(index, 1);
+      if (button.dataset.action === "up" && index > 0) [state.order[index - 1], state.order[index]] = [state.order[index], state.order[index - 1]];
+      if (button.dataset.action === "down" && index >= 0 && index < state.order.length - 1) [state.order[index + 1], state.order[index]] = [state.order[index], state.order[index + 1]];
+      if (button.dataset.action === "theme") {
+        state.theme = button.dataset.value;
+        updateTheme();
+      }
+      if (button.dataset.action === "visibility") {
+        state.visibility = button.dataset.value;
+        state.hidden = state.visibility === "hidden";
+        if (state.hidden && state.activePanelId) closeActivityPanel();
+      }
+      if (button.dataset.action === "circle-mode") state.circleMode = button.dataset.value;
+      if (button.dataset.action === "position") {
+        state.edge = button.dataset.value;
+      }
+      if (button.dataset.action === "toggle") state[button.dataset.setting] = !state[button.dataset.setting];
+      if (button.dataset.action === "service-toggle") state.services[id] = !state.services[id];
+      if (button.dataset.action === "service-connect") state.services[id] = !state.services[id];
+      if (button.dataset.action === "tray") state.tray = button.dataset.value;
+      if (button.dataset.action === "size-preset") {
+        state.sizePreset = button.dataset.value;
+        Object.assign(state, SIZE_PRESETS[state.sizePreset]);
+      }
+      if (button.dataset.action === "reset-size") { Object.assign(state, SIZE_PRESETS.medium); state.sizePreset = "medium"; }
+      if (button.dataset.action === "reset-icon-size") state.iconSize = 46;
+      if (button.dataset.action === "recenter") state.edgeOffsets[state.edge] = .5;
+      if (button.dataset.action === "hide-now") { state.visibility = "hidden"; state.hidden = true; }
+      if (button.dataset.action === "check-updates") state.updateStatus = "已检查 · 预览中不连接更新服务";
+      if (button.dataset.action === "open-folder") state.folderStatus = "原型不会实际打开本机目录。";
+      const action = button.dataset.action;
+      if (action === "remove" && state.activePanelId === id) closeActivityPanel();
+      if (["add", "remove", "up", "down"].includes(action)) renderDock();
+      else syncDock();
+      saveState();
+      renderSettings();
+      if (state.hidden && ["visibility", "hide-now"].includes(action)) closeSettings();
+    }
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (!settingsOverlay.hidden) closeSettings();
+        else if (state.activePanelId) closeActivityPanel();
+        else closePopover();
+      }
+    });
+    stage.addEventListener("pointerdown", (event) => {
+      if (event.target.closest("#dockRoot") || event.target.closest("#popover") || event.target.closest(".settings-window")) return;
+      if (!settingsOverlay.hidden) closeSettings();
+      else if (state.activePanelId && !event.target.closest("#activityPanel")) closeActivityPanel();
+      else closePopover();
+    });
+    document.querySelector(".layout-switch").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-preview-edge]");
+      if (!button) return;
+      closePopover();
+      state.edge = button.dataset.previewEdge;
+      syncDock();
+      saveState();
+    });
+    function nearestEdge(clientX, clientY) {
+      const rect = stage.getBoundingClientRect();
+      const distances = {
+        top: clientY - rect.top,
+        right: rect.right - clientX,
+        bottom: rect.bottom - clientY,
+        left: clientX - rect.left
+      };
+      return Object.keys(distances).sort((a, b) => distances[a] - distances[b])[0];
+    }
+    function setActiveDropEdge(edge) {
+      document.querySelectorAll(".edge-target").forEach((target) => target.classList.toggle("is-active", target.dataset.edge === edge));
+    }
+    function edgeTargetAt(clientX, clientY) {
+      for (const target of document.querySelectorAll(".edge-target")) {
+        const rect = target.getBoundingClientRect();
+        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) return target.dataset.edge;
+      }
+      return null;
+    }
+    function moveDockRootAtPointer(event, stageRect) {
+      const rootWidth = dockRoot.offsetWidth;
+      const rootHeight = dockRoot.offsetHeight;
+      const x = Math.max(3, Math.min(stageRect.width - rootWidth - 3, event.clientX - stageRect.left - dragState.offsetX));
+      const y = Math.max(3, Math.min(stageRect.height - rootHeight - 3, event.clientY - stageRect.top - dragState.offsetY));
+      dockRoot.style.left = x + "px";
+      dockRoot.style.top = y + "px";
+      dockRoot.style.right = "auto";
+      dockRoot.style.bottom = "auto";
+      dockRoot.style.transform = "none";
+    }
+    function switchDragOrientation(edge, event, stageRect) {
+      if (!dragState || dockRoot.dataset.edge === edge) return;
+      const oldHandleRect = document.getElementById("dragHandle").getBoundingClientRect();
+      const fractionX = Math.max(0, Math.min(1, (event.clientX - oldHandleRect.left) / oldHandleRect.width));
+      const fractionY = Math.max(0, Math.min(1, (event.clientY - oldHandleRect.top) / oldHandleRect.height));
+      setDockOrientation(edge);
+      const rootRect = dockRoot.getBoundingClientRect();
+      const newHandleRect = document.getElementById("dragHandle").getBoundingClientRect();
+      dragState.offsetX = newHandleRect.left - rootRect.left + fractionX * newHandleRect.width;
+      dragState.offsetY = newHandleRect.top - rootRect.top + fractionY * newHandleRect.height;
+      dragState.previewEdge = edge;
+      moveDockRootAtPointer(event, stageRect);
+    }
+    document.getElementById("dragHandle").addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      const stageRect = stage.getBoundingClientRect();
+      const rootRect = dockRoot.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startEdge: state.edge,
+        previewEdge: state.edge,
+        offsetX: event.clientX - rootRect.left,
+        offsetY: event.clientY - rootRect.top,
+        lastX: event.clientX,
+        lastY: event.clientY,
+      };
+      dockRoot.classList.add("is-dragging");
+      dockRoot.style.left = (rootRect.left - stageRect.left) + "px";
+      dockRoot.style.top = (rootRect.top - stageRect.top) + "px";
+      dockRoot.style.right = "auto";
+      dockRoot.style.bottom = "auto";
+      dockRoot.style.transform = "none";
+      document.getElementById("edgeTargets").classList.add("is-visible");
+      setActiveDropEdge(edgeTargetAt(event.clientX, event.clientY));
+      event.currentTarget.setPointerCapture(event.pointerId);
+      closePopover();
+      event.preventDefault();
+    });
+    document.getElementById("dragHandle").addEventListener("pointermove", (event) => {
+      if (!dragState || dragState.pointerId !== event.pointerId) return;
+      const rect = stage.getBoundingClientRect();
+      moveDockRootAtPointer(event, rect);
+      dragState.lastX = event.clientX;
+      dragState.lastY = event.clientY;
+      const targetEdge = edgeTargetAt(event.clientX, event.clientY);
+      setActiveDropEdge(targetEdge);
+      const previewEdge = targetEdge || nearestEdge(event.clientX, event.clientY);
+      switchDragOrientation(previewEdge, event, rect);
+    });
+    function finishDrag(event) {
+      if (!dragState) return;
+      if (event && event.pointerId !== undefined && dragState.pointerId !== event.pointerId) return;
+      if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+        dragState.lastX = event.clientX;
+        dragState.lastY = event.clientY;
+      }
+      const stageRect = stage.getBoundingClientRect();
+      const targetEdge = edgeTargetAt(dragState.lastX, dragState.lastY);
+      const edge = targetEdge || nearestEdge(dragState.lastX, dragState.lastY);
+      const lastPointer = { clientX: dragState.lastX, clientY: dragState.lastY };
+      if (dockRoot.dataset.edge !== edge) switchDragOrientation(edge, lastPointer, stageRect);
+      state.edge = edge;
+      if (targetEdge) {
+        state.edgeOffsets[edge] = .5;
+      } else {
+        const dockLength = edge === "top" || edge === "bottom" ? dockRoot.offsetWidth : dockRoot.offsetHeight;
+        const stageLength = edge === "top" || edge === "bottom" ? stageRect.width : stageRect.height;
+        const pointerAlong = edge === "top" || edge === "bottom" ? dragState.lastX - stageRect.left : dragState.lastY - stageRect.top;
+        state.edgeOffsets[edge] = clampEdgeOffset(edge, pointerAlong / stageLength, dockLength, stageRect);
+      }
+      dragState = null;
+      dockRoot.classList.remove("is-dragging");
+      document.getElementById("edgeTargets").classList.remove("is-visible");
+      document.querySelectorAll(".edge-target").forEach((target) => target.classList.remove("is-active"));
+      applyDockPlacement();
+      syncDock();
+      saveState();
+      if (!settingsOverlay.hidden) renderSettings();
+    }
+    document.getElementById("dragHandle").addEventListener("pointerup", finishDrag);
+    document.getElementById("dragHandle").addEventListener("pointercancel", finishDrag);
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
+    window.addEventListener("resize", () => { syncDock(); placePopover(); refreshSizeControls(); });
+    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (state.theme === "system") { updateTheme(); if (!settingsOverlay.hidden) renderSettings(); } });
+    loadSavedState();
+    const previewQuery = new URLSearchParams(window.location.search);
+    const previewWidth = Number(previewQuery.get("width"));
+    const previewHeight = Number(previewQuery.get("height"));
+    const previewCornerRadius = Number(previewQuery.get("corner"));
+    const previewModules = previewQuery.get("modules");
+    if (previewModules) {
+      const requestedModules = previewModules.split(",").flatMap((id) => id === "system" ? METRIC_IDS : MODULES[id] ? [id] : []);
+      if (requestedModules.length) state.order = Array.from(new Set(requestedModules));
+    }
+    if (Number.isFinite(previewWidth) && previewWidth > 0) { state.length = Math.max(68, Math.min(720, previewWidth)); state.sizePreset = "custom"; }
+    if (Number.isFinite(previewHeight) && previewHeight > 0) { state.thickness = Math.max(68, Math.min(240, previewHeight)); state.sizePreset = "custom"; }
+    const previewIconSize = Number(previewQuery.get("icon"));
+    if (previewQuery.has("icon") && Number.isFinite(previewIconSize)) state.iconSize = Math.max(ICON_MIN, Math.min(ICON_MAX, previewIconSize));
+    if (previewQuery.has("corner") && Number.isFinite(previewCornerRadius)) state.cornerRadius = Math.max(0, Math.min(52, previewCornerRadius));
+    const edgePreset = previewQuery.get("edge");
+    if (["top", "right", "bottom", "left"].includes(edgePreset)) state.edge = edgePreset;
+    if (previewQuery.get("hidden") === "1") { state.hidden = true; state.visibility = "hidden"; }
+    const peekPreset = previewQuery.get("peek");
+    if (["start", "end"].includes(peekPreset)) dockRoot.dataset.previewPeek = peekPreset;
+    updateTheme();
+    renderDock();
+    window.setInterval(() => {
+      state.displayPhase += 1;
+      updateDockValues();
+    }, 3000);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      dockRoot.classList.remove("is-initializing");
+      document.documentElement.classList.remove("is-initializing");
+    }));
+    const settingsPreset = previewQuery.get("settings");
+    const panelPreset = previewQuery.get("panel") === "system" ? "cpu" : previewQuery.get("panel");
+    const hoverPreset = previewQuery.get("hover") === "system" ? "cpu" : previewQuery.get("hover");
+    if (["modules", "services", "appearance", "behavior", "general"].includes(settingsPreset)) {
+      state.activeTab = settingsPreset;
+      settingsOverlay.hidden = false;
+      renderSettings();
+    } else if (MODULES[panelPreset] && state.order.includes(panelPreset)) {
+      window.requestAnimationFrame(() => openActivityPanel(panelPreset));
+    } else if (MODULES[hoverPreset] && state.order.includes(hoverPreset)) {
+      window.requestAnimationFrame(() => showPopover(hoverPreset));
+    }
+    if (previewQuery.get("drag") === "1") {
+      document.getElementById("edgeTargets").classList.add("is-visible");
+      setActiveDropEdge(previewQuery.get("target") || "right");
+      dockRoot.classList.add("is-dragging");
+    }
+  </script>
+</body>
+</html>

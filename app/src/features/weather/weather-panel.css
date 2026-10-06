@@ -1,0 +1,78 @@
+.weather-status {
+  margin: 0 0 14px;
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.weather-status[data-quality="stale"] {
+  color: #a15b22;
+}
+
+.weather-empty {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.weather-current {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid var(--shell-line);
+  border-radius: 14px;
+  background: var(--shell-surface-raised);
+}
+
+.weather-current > div {
+  display: grid;
+  gap: 4px;
+}
+
+.weather-current > div strong {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.weather-current > div span {
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.weather-current dl {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+}
+
+.weather-current dl div {
+  display: grid;
+  gap: 3px;
+  text-align: right;
+}
+
+.weather-current dt {
+  color: var(--shell-muted);
+  font-size: 9px;
+}
+
+.weather-current dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.weather-hourly {
+  margin-top: 16px;
+}
+
+.weather-hourly h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
+.weather-footer {
+  flex-wrap: wrap;
+}

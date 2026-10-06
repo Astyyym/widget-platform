@@ -1,0 +1,128 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  background: #101217;
+  color: #f4f5f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 4px;
+  background: #101217;
+}
+
+.widget {
+  width: 100%;
+  height: calc(100vh - 8px);
+  padding: 8px;
+  border: 1px solid #343943;
+  border-radius: 14px;
+  background: #171a20;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  color: #9ca5b4;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+h1 span {
+  color: #91d7b0;
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+input {
+  min-height: 28px;
+  border: 1px solid #485363;
+  border-radius: 8px;
+  font: inherit;
+}
+
+button {
+  padding: 0 9px;
+  color: #f4f5f7;
+  background: #303a48;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3b4859;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #85b7ff;
+  outline-offset: 2px;
+}
+
+.input-panel {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #343943;
+}
+
+.input-panel[hidden] {
+  display: none;
+}
+
+.input-panel label,
+.preview,
+.status {
+  margin: 0;
+  color: #bec5d0;
+  font-size: 12px;
+}
+
+.status {
+  min-height: 0;
+  margin-top: 3px;
+}
+
+input {
+  width: 100%;
+  padding: 0 9px;
+  color: #f4f5f7;
+  background: #101217;
+}
+
+.preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondary {
+  min-height: 26px;
+  padding: 0 8px;
+  color: #bec5d0;
+  background: transparent;
+  white-space: nowrap;
+}

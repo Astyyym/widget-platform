@@ -1,0 +1,23 @@
+{
+  "normal": {
+    "text": "first line\r\nsecond line",
+    "observedAtMs": 1000,
+    "sourceAppId": "editor.exe",
+    "excludeFromHistory": false,
+    "restoreMarker": null
+  },
+  "excluded": {
+    "text": "synthetic excluded text",
+    "observedAtMs": 2000,
+    "sourceAppId": null,
+    "excludeFromHistory": true,
+    "restoreMarker": null
+  },
+  "pathSource": {
+    "text": "synthetic source minimization",
+    "observedAtMs": 3000,
+    "sourceAppId": "C:\\private\\app.exe",
+    "excludeFromHistory": false,
+    "restoreMarker": null
+  }
+}

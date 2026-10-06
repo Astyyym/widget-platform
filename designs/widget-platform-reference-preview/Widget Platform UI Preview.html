@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" class="is-initializing">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Widget Platform · UI Preview</title>
+  <!--
+    Design context: a Windows desktop companion inspired by the supplied Codenotch
+    screenshots. Follow the operating-system theme by default; show three circular
+    modules initially; reveal an anchored card on hover and pin it on click.
+    All readings below are illustrative UI data, not live system measurements.
+  -->
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f5f6f7;
+      --stage: #e9ecee;
+      --surface: #ffffff;
+      --surface-raised: #f5f7f8;
+      --surface-muted: #edf0f2;
+      --line: #dce1e4;
+      --text: #1b2025;
+      --muted: #737d86;
+      --soft-text: #9aa3aa;
+      --accent: #32b9ec;
+      --accent-soft: #e4f7fd;
+      --dock: #fbfcfd;
+      --dock-inner: #eef1f3;
+      --dock-line: #d9dfe3;
+      --dock-text: #20262b;
+      --dock-active-text: #08232d;
+      --shadow: 0 24px 70px rgba(29, 40, 48, .18);
+      --stage-wall:
+        radial-gradient(ellipse at 30% 42%, rgba(179, 216, 218, .58), transparent 44%),
+        radial-gradient(ellipse at 76% 62%, rgba(233, 205, 174, .48), transparent 40%),
+        linear-gradient(135deg, #eff1ef, #e2e7e8 56%, #f2eee8);
+      font-family: "Segoe UI", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #171a1e;
+      --stage: #101418;
+      --surface: #23272c;
+      --surface-raised: #2b3036;
+      --surface-muted: #343a41;
+      --line: #40474e;
+      --text: #f1f3f4;
+      --muted: #a4adb5;
+      --soft-text: #7f8991;
+      --accent: #48c3ef;
+      --accent-soft: #183e4d;
+      --dock: #080a0c;
+      --dock-inner: #202428;
+      --dock-line: #353b40;
+      --dock-text: #f5f7f8;
+      --dock-active-text: #f4fbff;
+      --shadow: 0 28px 80px rgba(0, 0, 0, .42);
+      --stage-wall:
+        radial-gradient(ellipse at 31% 42%, rgba(46, 98, 104, .34), transparent 45%),
+        radial-gradient(ellipse at 76% 61%, rgba(120, 77, 48, .25), transparent 41%),
+        linear-gradient(135deg, #171e23, #20272b 56%, #171c20);
+    }
+    * { box-sizing: border-box; }
+    html.is-initializing, html.is-initializing * { transition: none !important; animation: none !important; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--page);
+      transition: background-color .24s ease, color .24s ease;
+    }
+    button { font: inherit; color: inherit; }
+    button:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .page { width: min(1500px, 100%); margin: 0 auto; padding: 24px 28px 22px; }
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 0 4px 16px;
+    }
+    .brand-line { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 11px;
+      display: grid; place-items: center;
+      color: #071116; background: var(--accent);
+      font-size: 14px; font-weight: 800; letter-spacing: -.05em;
+    }
+    .brand-copy { display: grid; gap: 2px; }
+    .brand-title { font-size: 14px; font-weight: 720; letter-spacing: -.01em; }
+    .brand-kicker {
+      color: var(--muted); font-size: 10px; font-weight: 650;
+      letter-spacing: .12em; text-transform: uppercase;
+    }
+    .preview-meta { display: flex; align-items: center; gap: 10px; }
+    .preview-badge, .theme-readout {
+      display: inline-flex; align-items: center; gap: 7px;
+      min-height: 30px; padding: 0 11px;
+      border: 1px solid var(--line); border-radius: 999px;
+      color: var(--muted); background: var(--surface);
+      font-size: 11px; font-weight: 620;
+    }
+    .preview-badge::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .theme-readout { color: var(--text); }
+    .theme-readout .small-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .desktop-stage {
+      position: relative;
+      height: min(820px, calc(100vh - 132px));
+      min-height: 620px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 24px;
+      background: var(--stage-wall);
+      box-shadow: 0 14px 44px rgba(22, 35, 42, .09);
+      isolation: isolate;
+    }
+    .desktop-stage::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background:
+        linear-gradient(115deg, transparent 43%, rgba(255,255,255,.12) 44%, transparent 45%),
+        radial-gradient(ellipse at 52% 110%, rgba(255,255,255,.24), transparent 46%);
+      pointer-events: none;
+    }
+    .desktop-label {
+      position: absolute; left: 30px; top: 28px;
+      display: grid; gap: 5px; color: var(--muted);
+      font-size: 12px; letter-spacing: .04em;
+    }
+    .desktop-label strong { color: var(--text); font-size: 12px; letter-spacing: .02em; }
+    .stage-instruction {
+      position: absolute; left: 50%; top: 195px; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 13px; border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px; color: var(--muted);
+      background: color-mix(in srgb, var(--surface) 68%, transparent);
+      box-shadow: 0 8px 25px rgba(30,40,48,.05);
+      font-size: 11px; white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+    .stage-instruction kbd {
+      padding: 2px 6px; border: 1px solid var(--line); border-radius: 5px;
+      color: var(--text); background: var(--surface); font: 10px "Segoe UI", sans-serif;
+    }
+    .dock-root {
+      --dock-width: 320px;
+      --dock-height: 112px;
+      --dock-thickness: 112px;
+      --dock-along-size: 320px;
+      --dock-module-count: 3;
+      --dock-slot-size: calc(var(--dock-along-size) / var(--dock-module-count));
+      --dock-orbit-size: clamp(12px, min(calc(var(--dock-thickness) * .41), calc(var(--dock-slot-size) * .68)), 46px);
+      --dock-symbol-size: clamp(8px, calc(var(--dock-orbit-size) * .46), 20px);
+      --dock-readout-size: clamp(6px, min(calc(var(--dock-thickness) * .098), calc(var(--dock-slot-size) * .24)), 11px);
+      --dock-corner-radius: 24px;
+      --dock-strip-length: 23px;
+      --dock-strip-opacity: .76;
+      --dock-x: 50%;
+      --dock-y: 0px;
+      position: absolute; z-index: 5;
+      top: var(--dock-y); left: var(--dock-x);
+      width: var(--dock-width); height: var(--dock-height);
+      display: grid; place-items: stretch;
+      transform: translateX(-50%);
+      transition: left .22s ease, top .22s ease, width .18s ease, height .18s ease;
+    }
+    .dock-root.is-dragging { transition: none; cursor: grabbing; z-index: 12; }
+    .dock-root.is-initializing { transition: none !important; }
+    .dock-shell {
+      position: relative;
+      width: 100%; height: 100%; min-width: 0; min-height: 0;
+      color: var(--dock-text); background: var(--dock); border: 1px solid var(--dock-line);
+      overflow: hidden; border-radius: var(--dock-corner-radius);
+      box-shadow: 0 18px 28px rgba(0,0,0,.18);
+      transition: transform .22s ease, opacity .18s ease;
+    }
+    .module-row {
+      position: relative; z-index: 1; width: 100%; height: 100%; min-width: 0; min-height: 0; display: flex;
+      align-items: center; justify-content: center; overflow: auto; scrollbar-width: none;
+      gap: clamp(0px, calc(var(--dock-slot-size) * .08), 6px);
+      padding: clamp(2px, calc(var(--dock-thickness) * .055), 7px) clamp(2px, calc(var(--dock-thickness) * .08), 12px);
+    }
+    .module-row::-webkit-scrollbar { display: none; }
+    .module-button {
+      min-width: 0; min-height: 0; flex: 1 1 0; overflow: hidden;
+      display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto auto; align-content: center; align-items: center; justify-items: center;
+      gap: clamp(0px, calc(var(--dock-slot-size) * .035), 3px);
+      padding: 0; border: 0; background: transparent; color: var(--dock-text);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .module-orbit {
+      position: relative; width: var(--dock-orbit-size); height: var(--dock-orbit-size); max-width: 100%; max-height: 100%; flex: 0 0 auto;
+      display: grid; place-items: center;
+      border: 1px solid var(--dock-line); border-radius: 50%;
+      background: var(--dock-inner);
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,.025);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .module-orbit::before {
+      content: ""; position: absolute; inset: 2px; z-index: 0; border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--ring-progress, 0%), color-mix(in srgb, var(--dock-line) 56%, transparent) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+      opacity: 0; transition: opacity .18s ease;
+    }
+    .dock-root[data-ring="inner"] .module-orbit::before { opacity: .95; }
+    .dock-root[data-ring="outer"] .module-orbit::after { inset: -6px; border-color: color-mix(in srgb, var(--accent) 58%, transparent); }
+    .dock-root[data-ring="outer"] .module-orbit::before { inset: -2px; opacity: .88; }
+    .module-orbit::after {
+      content: ""; position: absolute; inset: -4px;
+      border: 2px solid transparent; border-radius: 50%;
+      transition: border-color .18s ease, transform .18s ease;
+    }
+    .module-symbol {
+      display: grid; place-items: center;
+      width: 68%; height: 68%; max-width: 100%; max-height: 100%; overflow: hidden; color: var(--dock-text);
+      font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+      font-size: var(--dock-symbol-size); line-height: 1;
+    }
+    .module-symbol.wordmark { font-family: "Segoe UI", sans-serif; font-size: clamp(5px, calc(var(--dock-orbit-size) * .25), 9px); font-weight: 800; letter-spacing: -.06em; }
+    .module-readout {
+      min-width: 0; max-width: 100%; min-height: clamp(6px, calc(var(--dock-slot-size) * .26), 12px); overflow: hidden;
+      color: var(--muted); white-space: nowrap; text-overflow: clip;
+      font-size: var(--dock-readout-size); font-weight: 650; font-variant-numeric: tabular-nums;
+      transition: color .18s ease;
+    }
+    .module-button:hover .module-orbit,
+    .module-button:focus-visible .module-orbit,
+    .module-button.is-active .module-orbit {
+      transform: translateY(-2px) scale(1.045);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--dock-inner) 76%, var(--accent));
+      box-shadow: 0 0 0 5px rgba(72,195,239,.12), 0 5px 20px rgba(49,184,236,.13);
+    }
+    .module-button:hover .module-orbit::after,
+    .module-button:focus-visible .module-orbit::after,
+    .module-button.is-active .module-orbit::after { border-color: var(--accent); transform: rotate(-27deg); }
+    .module-button:hover .module-readout,
+    .module-button:focus-visible .module-readout,
+    .module-button.is-active .module-readout { color: var(--dock-active-text); }
+    .dock-control { position: absolute; z-index: 2; width: 14px; height: 38px; display: grid; place-items: center; }
+    .dock-strip {
+      width: 5px; height: var(--dock-strip-length); padding: 0; border: 0; border-radius: 99px;
+      opacity: var(--dock-strip-opacity); background: #fff; box-shadow: 0 2px 8px rgba(10,18,24,.24); cursor: pointer;
+      transition: opacity .15s ease, transform .18s ease;
+    }
+    .dock-control[data-side="start"] { left: -11px; top: 50%; transform: translate(-50%,-50%); }
+    .dock-control[data-side="end"] { right: -11px; top: 50%; transform: translate(50%,-50%); }
+    .dock-control-action {
+      position: absolute; inset: 50% auto auto 50%; width: 43px; height: 43px;
+      display: grid; place-items: center; padding: 0; opacity: 0; pointer-events: none;
+      transform: translate(-50%,-50%) scale(.78); border: 1px solid var(--line); border-radius: 50%;
+      color: var(--text); background: var(--surface); box-shadow: 0 7px 20px rgba(21,31,38,.16);
+      cursor: pointer; transition: opacity .16s ease, transform .24s cubic-bezier(.2,.8,.2,1), background .18s ease, color .18s ease;
+    }
+    .dock-control[data-side="start"] .dock-control-action { --control-shift-x: -25px; }
+    .dock-control[data-side="end"] .dock-control-action { --control-shift-x: 25px; }
+    .dock-control:hover .dock-control-action, .dock-control:focus-within .dock-control-action { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) translateX(var(--control-shift-x, 0px)) scale(1); }
+    .dock-root[data-preview-peek="start"] .dock-control[data-side="start"] .dock-control-action,
+    .dock-root[data-preview-peek="end"] .dock-control[data-side="end"] .dock-control-action { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) translateX(var(--control-shift-x, 0px)) scale(1); }
+    .dock-control:hover .dock-strip, .dock-control:focus-within .dock-strip { opacity: .28; transform: scale(.85); }
+    .dock-control-action:hover { color: #06202a; background: var(--accent); }
+    .grip-glyph { font-size: 17px; letter-spacing: -4px; transform: rotate(90deg); margin-left: -4px; }
+    .gear-glyph { font-family: "Segoe UI Symbol", sans-serif; font-size: 21px; line-height: 1; }
+    .dock-control-action.drag-handle { cursor: grab; touch-action: none; }
+    .dock-control-action.drag-handle:active { cursor: grabbing; }
+    .dock-root[data-edge="left"], .dock-root[data-edge="right"] { width: var(--dock-height); height: var(--dock-width); transform: translateY(-50%); }
+    .dock-root[data-edge="left"] .module-row, .dock-root[data-edge="right"] .module-row { flex-direction: column; }
+    .dock-root[data-edge="left"] .module-button, .dock-root[data-edge="right"] .module-button { width: 100%; flex: 1 1 0; grid-auto-flow: row; grid-template-columns: minmax(0,1fr); grid-template-rows: auto auto; justify-content: center; justify-items: center; gap: clamp(0px, calc(var(--dock-slot-size) * .035), 3px); padding: 0; }
+    .dock-root[data-edge="left"] .dock-control[data-side="start"], .dock-root[data-edge="right"] .dock-control[data-side="start"] { left: 50%; top: -11px; transform: translate(-50%,-50%) rotate(90deg); }
+    .dock-root[data-edge="left"] .dock-control[data-side="end"], .dock-root[data-edge="right"] .dock-control[data-side="end"] { left: 50%; right: auto; top: auto; bottom: -11px; transform: translate(-50%,50%) rotate(90deg); }
+    .dock-root.is-collapsed .dock-shell { opacity: .04; transform: translateY(-78%); pointer-events: none; }
+    .dock-root[data-edge="bottom"].is-collapsed .dock-shell { transform: translateY(78%); }
+    .dock-root[data-edge="left"].is-collapsed .dock-shell { transform: translateX(-78%); }
+    .dock-root[data-edge="right"].is-collapsed .dock-shell { transform: translateX(78%); }
+    .dock-root.is-collapsed .dock-control[data-side="start"] .dock-strip,
+    .dock-root.is-collapsed .dock-control[data-side="end"] .dock-strip { height: var(--dock-strip-length); width: 5px; }
+    .dock-root.is-hidden { visibility: hidden; pointer-events: none; }
+    .restore-strip {
+      position: absolute; z-index: 7; left: 50%; bottom: 0; width: 58px; height: 7px;
+      padding: 0; border: 1px solid rgba(23,31,37,.28); border-bottom: 0; border-radius: 99px 99px 0 0; background: #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.16), 0 -3px 18px rgba(0,0,0,.26);
+      opacity: .9; transform: translateX(-50%); cursor: pointer; transition: width .18s ease, height .18s ease, opacity .18s ease;
+    }
+    .restore-strip:hover, .restore-strip:focus-visible { width: 78px; height: 11px; opacity: 1; }
+    .restore-strip[data-edge="top"] { top: 0; bottom: auto; border-radius: 0 0 99px 99px; }
+    .restore-strip[data-edge="left"], .restore-strip[data-edge="right"] { top: 50%; bottom: auto; left: auto; width: 7px; height: 58px; transform: translateY(-50%); border-radius: 0 99px 99px 0; }
+    .restore-strip[data-edge="left"] { left: 0; right: auto; }
+    .restore-strip[data-edge="right"] { right: 0; border-radius: 99px 0 0 99px; }
+    .edge-targets { position: absolute; z-index: 4; inset: 0; display: none; pointer-events: none; }
+    .edge-targets.is-visible { display: block; }
+    .edge-target {
+      position: absolute; display: grid; place-items: center; border: 2px dashed color-mix(in srgb, var(--accent) 76%, white);
+      border-radius: 18px; color: var(--text); background: color-mix(in srgb, var(--surface) 46%, transparent);
+      opacity: .62; font-size: 11px; font-weight: 700; letter-spacing: .04em; transition: opacity .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .edge-target[data-edge="top"] { left: 50%; top: 2px; width: min(390px, 48%); height: 112px; transform: translateX(-50%); }
+    .edge-target[data-edge="bottom"] { left: 50%; bottom: 43px; width: min(390px, 48%); height: 112px; transform: translateX(-50%); }
+    .edge-target[data-edge="left"] { left: 2px; top: 50%; width: 112px; height: min(390px, 52%); transform: translateY(-50%); }
+    .edge-target[data-edge="right"] { right: 2px; top: 50%; width: 112px; height: min(390px, 52%); transform: translateY(-50%); }
+    .edge-target.is-active { opacity: 1; background: color-mix(in srgb, var(--accent-soft) 78%, transparent); box-shadow: 0 0 0 5px rgba(49,184,236,.13); }
+    .popover {
+      position: absolute; z-index: 9;
+      width: min(356px, calc(100vw - 36px));
+      padding: 18px;
+      border: 1px solid var(--line); border-radius: 19px;
+      color: var(--text); background: var(--surface);
+      box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: translateY(-5px) scale(.985);
+      transform-origin: top center;
+      transition: opacity .16s ease, transform .16s ease, visibility .16s;
+    }
+    .popover.is-visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0) scale(1); }
+    .popover::before {
+      content: ""; position: absolute; top: -7px; left: var(--arrow-x, 50%);
+      width: 13px; height: 13px; transform: translateX(-50%) rotate(45deg);
+      border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .popover.is-side-left::before, .popover.is-side-right::before {
+      top: var(--arrow-y, 50%); left: -7px; transform: translateY(-50%) rotate(45deg);
+      border: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+    }
+    .popover.is-side-right::before { left: auto; right: -7px; transform: translateY(-50%) rotate(225deg); }
+    .popover.is-above::before {
+      top: auto; bottom: -7px; border: 0;
+      border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    }
+    .popover-head { display: flex; align-items: center; gap: 11px; position: relative; }
+    .popover-mark {
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 11px; color: #10232c; background: var(--accent);
+      font-size: 17px; font-weight: 750;
+    }
+    .popover-title { flex: 1; display: grid; gap: 2px; }
+    .popover-title strong { font-size: 14px; font-weight: 720; }
+    .popover-title span { color: var(--muted); font-size: 12px; }
+    .sample-pill {
+      padding: 5px 8px; border: 1px solid var(--line); border-radius: 999px;
+      color: var(--muted); background: var(--surface-raised);
+      font-size: 10px; font-weight: 650; letter-spacing: .02em;
+    }
+    .popover-content { position: relative; margin-top: 17px; }
+    .popover-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 11px;
+    }
+    .todo-progress { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; font-size: 13px; }
+    .todo-progress strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+    .progress-track { height: 5px; overflow: hidden; border-radius: 99px; background: var(--surface-muted); }
+    .progress-track i { display: block; height: 100%; width: 38%; border-radius: inherit; background: var(--accent); }
+    .todo-list { display: grid; gap: 2px; margin-top: 12px; }
+    .todo-line {
+      width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 3px;
+      border: 0; border-radius: 7px; color: var(--text); background: transparent;
+      text-align: left; font-size: 13px; cursor: pointer;
+    }
+    .todo-line:hover { background: var(--surface-raised); }
+    .todo-check {
+      width: 16px; height: 16px; display: grid; place-items: center;
+      flex: 0 0 16px; border: 1px solid var(--line); border-radius: 5px;
+      color: #073241; background: var(--accent); font-size: 11px; font-weight: 800;
+    }
+    .todo-line.pending .todo-check { color: transparent; background: transparent; }
+    .todo-line.completed span:last-child { color: var(--muted); text-decoration: line-through; }
+    .timer-state { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+    .timer-state i { width: 7px; height: 7px; border-radius: 50%; background: #62c68c; box-shadow: 0 0 0 4px rgba(98,198,140,.12); }
+    .timer-value {
+      margin: 12px 0 14px; color: var(--text);
+      font-size: 42px; font-weight: 620; letter-spacing: -.055em;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .timer-actions { display: flex; gap: 8px; }
+    .action-button {
+      min-height: 34px; padding: 0 12px;
+      border: 1px solid var(--line); border-radius: 9px;
+      color: var(--text); background: var(--surface-raised);
+      font-size: 12px; font-weight: 650; cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .action-button:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .action-button.primary { border-color: var(--accent); color: #08222c; background: var(--accent); }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric-box { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-raised); }
+    .metric-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .metric-top span { color: var(--muted); font-size: 12px; }
+    .metric-top strong { font-size: 19px; font-weight: 680; font-variant-numeric: tabular-nums; }
+    .metric-box .progress-track i { width: var(--fill); }
+    .empty-state {
+      display: grid; justify-items: start; gap: 9px;
+      padding: 12px 2px 2px; color: var(--muted); font-size: 12px; line-height: 1.55;
+    }
+    .empty-state strong { color: var(--text); font-size: 13px; }
+    .settings-overlay {
+      position: absolute; z-index: 20; inset: 0;
+      display: grid; place-items: center;
+      padding: 24px; background: rgba(15,19,22,.34);
+      backdrop-filter: blur(4px);
+    }
+    .settings-window {
+      width: min(920px, 100%); height: min(740px, 100%);
+      display: grid; grid-template-columns: 218px minmax(0,1fr);
+      overflow: hidden; border: 1px solid color-mix(in srgb, var(--line) 75%, white);
+      border-radius: 20px; background: var(--surface); box-shadow: 0 30px 100px rgba(0,0,0,.28);
+    }
+    .settings-side {
+      display: flex; flex-direction: column; padding: 18px 13px;
+      border-right: 1px solid var(--line); background: var(--surface-raised);
+    }
+    .settings-brand { display: flex; align-items: center; gap: 10px; padding: 3px 7px 22px; }
+    .settings-brand .brand-mark { width: 30px; height: 30px; border-radius: 9px; }
+    .settings-brand strong { display: block; font-size: 12px; }
+    .settings-brand span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .settings-nav { display: grid; gap: 4px; }
+    .nav-button {
+      width: 100%; min-height: 40px; display: flex; align-items: center; gap: 11px;
+      padding: 0 11px; border: 0; border-radius: 10px; color: var(--muted);
+      background: transparent; text-align: left; font-size: 13px; font-weight: 620; cursor: pointer;
+    }
+    .nav-button:hover { color: var(--text); background: var(--surface-muted); }
+    .nav-button.is-selected { color: var(--text); background: var(--surface); box-shadow: 0 1px 5px rgba(10,20,28,.08); }
+    .nav-icon { width: 18px; color: var(--muted); font-size: 15px; text-align: center; }
+    .settings-side-note { margin-top: auto; padding: 12px 7px 3px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .settings-main { min-width: 0; overflow: auto; padding: 28px 32px; }
+    .settings-topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .settings-heading { margin: 0; font-size: 22px; font-weight: 730; letter-spacing: -.03em; }
+    .settings-subheading { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .close-settings {
+      width: 32px; height: 32px; display: grid; place-items: center;
+      border: 1px solid var(--line); border-radius: 9px;
+      color: var(--muted); background: var(--surface); font-size: 17px; cursor: pointer;
+    }
+    .settings-section { margin: 0 0 19px; }
+    .section-title { margin: 0 0 9px; font-size: 13px; font-weight: 700; }
+    .section-description { margin: -3px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .setting-card { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .module-setting-row {
+      display: grid; grid-template-columns: minmax(0,1fr) auto auto;
+      align-items: center; gap: 10px; min-height: 66px; padding: 10px 13px;
+      border-bottom: 1px solid var(--line);
+    }
+    .module-setting-row:last-child { border-bottom: 0; }
+    .setting-module-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .tiny-orbit {
+      width: 32px; height: 32px; display: grid; place-items: center; flex: 0 0 32px;
+      border: 1px solid var(--line); border-radius: 50%;
+      color: var(--text); background: var(--surface-raised); font-size: 14px;
+    }
+    .setting-module-name strong { display: block; font-size: 13px; }
+    .setting-module-name small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .order-controls { display: flex; gap: 4px; }
+    .order-button {
+      width: 27px; height: 27px; display: grid; place-items: center;
+      border: 1px solid var(--line); border-radius: 7px;
+      color: var(--muted); background: var(--surface-raised); cursor: pointer;
+    }
+    .order-button:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+    .order-button:disabled { opacity: .36; cursor: default; }
+    .module-toggle {
+      width: 36px; height: 21px; position: relative;
+      padding: 0; border: 0; border-radius: 99px;
+      background: #969da2; cursor: pointer; transition: background .16s ease;
+    }
+    .module-toggle::after {
+      content: ""; position: absolute; top: 3px; left: 3px;
+      width: 15px; height: 15px; border-radius: 50%; background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .16s ease;
+    }
+    .module-toggle[aria-pressed="true"] { background: var(--accent); }
+    .module-toggle[aria-pressed="true"]::after { transform: translateX(15px); background: #09222c; }
+    .add-module-button {
+      min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
+      color: var(--text); background: var(--surface-raised); font-size: 10px; font-weight: 650; cursor: pointer;
+    }
+    .add-module-button:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .theme-segmented {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+      padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised);
+    }
+    .theme-choice {
+      min-height: 34px; border: 1px solid transparent; border-radius: 8px;
+      color: var(--muted); background: transparent; font-size: 12px; font-weight: 650; cursor: pointer;
+    }
+    .theme-choice:hover { color: var(--text); }
+    .theme-choice.is-selected {
+      border-color: var(--line); color: var(--text); background: var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .theme-preview {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px;
+      margin-top: 11px; padding: 12px; border: 1px solid var(--line);
+      border-radius: 11px; background: var(--surface-raised);
+    }
+    .theme-preview strong { display: block; font-size: 11px; }
+    .theme-preview span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .theme-swatch { display: flex; gap: 4px; }
+    .theme-swatch i { width: 17px; height: 17px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+    .theme-swatch i:nth-child(2) { background: var(--surface-muted); }
+    .theme-swatch i:nth-child(3) { border-color: var(--accent); background: var(--accent); }
+    .behavior-list { display: grid; gap: 0; }
+    .behavior-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 13px 14px; border-bottom: 1px solid var(--line);
+    }
+    .behavior-row:last-child { border-bottom: 0; }
+    .behavior-row strong { display: block; font-size: 11px; }
+    .behavior-row small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .behavior-chip { padding: 5px 8px; border-radius: 999px; color: #0a2933; background: var(--accent); font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .setting-segmented { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); }
+    .setting-segmented.four { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .setting-segmented button { min-height: 32px; padding: 0 6px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 650; cursor: pointer; }
+    .setting-segmented button:hover { color: var(--text); }
+    .setting-segmented button.is-selected { border-color: var(--line); color: var(--text); background: var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .dimension-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; padding: 13px; }
+    .size-preset-row { margin: 0 0 9px; }
+    .dimension-field { display: grid; grid-template-columns: 1fr 74px; align-items: center; gap: 7px 10px; }
+    .dimension-field label { color: var(--text); font-size: 11px; font-weight: 650; }
+    .dimension-field input[type="range"] { width: 100%; accent-color: var(--accent); grid-column: 1 / 2; }
+    .dimension-field input[type="number"], .setting-select { width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: var(--surface-raised); font: inherit; font-size: 11px; }
+    .dimension-field small { grid-column: 1 / -1; color: var(--muted); font-size: 10px; }
+    .inline-control { display: flex; align-items: center; gap: 9px; }
+    .inline-control .setting-segmented { flex: 1; }
+    .mini-action { min-height: 31px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: var(--surface-raised); font-size: 10px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+    .mini-action:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .service-row { display: grid; grid-template-columns: 34px minmax(0,1fr) auto auto; align-items: center; gap: 11px; min-height: 62px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
+    .service-row:last-child { border-bottom: 0; }
+    .service-mark { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); font-size: 13px; font-weight: 750; }
+    .service-row strong { display: block; font-size: 12px; }
+    .service-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .status-label { padding: 4px 7px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .status-label.ready { color: #168254; border-color: color-mix(in srgb, #168254 28%, var(--line)); background: color-mix(in srgb, #168254 8%, var(--surface)); }
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 50px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
+    .switch-row:last-child { border-bottom: 0; }
+    .switch-row strong { display: block; font-size: 11px; }
+    .switch-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .settings-toggle { width: 37px; height: 22px; position: relative; flex: 0 0 37px; padding: 0; border: 0; border-radius: 99px; background: #969da2; cursor: pointer; transition: background .16s ease; }
+    .settings-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .16s ease; }
+    .settings-toggle[aria-pressed="true"] { background: var(--accent); }
+    .settings-toggle[aria-pressed="true"]::after { transform: translateX(15px); background: #09222c; }
+    .settings-footer-note { margin-top: 11px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .setting-slider-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 7px 12px; padding: 12px 13px; border-bottom: 1px solid var(--line); }
+    .setting-slider-row:last-child { border-bottom: 0; }
+    .setting-slider-row label { color: var(--text); font-size: 11px; font-weight: 650; }
+    .setting-slider-row output { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .setting-slider-row input[type="range"] { width: 100%; grid-column: 1 / -1; accent-color: var(--accent); }
+    .setting-slider-row small { grid-column: 1 / -1; margin-top: -5px; color: var(--muted); font-size: 10px; }
+    .settings-status.warning i { background: #e1a84e; }
+    .settings-status {
+      display: flex; align-items: center; gap: 7px; margin-top: 15px;
+      color: var(--muted); font-size: 10px;
+    }
+    .settings-status i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .taskbar {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border-top: 1px solid rgba(255,255,255,.38);
+      color: color-mix(in srgb, var(--text) 76%, transparent);
+      background: color-mix(in srgb, var(--surface) 60%, transparent);
+      backdrop-filter: blur(14px);
+    }
+    .taskbar-center { display: flex; align-items: center; gap: 13px; }
+    .taskbar-icon { width: 14px; height: 14px; display: grid; place-items: center; font-size: 12px; }
+    .taskbar-icon.active { color: var(--accent); }
+    .taskbar-right { position: absolute; right: 22px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 10px; }
+    .stage-footnote {
+      position: absolute; left: 28px; bottom: 60px;
+      display: grid; gap: 4px; color: var(--muted); font-size: 10px;
+    }
+    .stage-footnote strong { color: var(--text); font-size: 11px; }
+    .page-foot {
+      display: flex; justify-content: space-between; gap: 14px;
+      margin: 12px 4px 0; color: var(--muted); font-size: 10px;
+    }
+    .page-foot strong { color: var(--text); font-weight: 650; }
+    [hidden] { display: none !important; }
+    @media (max-width: 720px) {
+      .page { padding: 14px 10px; }
+      .page-head { margin-inline: 3px; }
+      .preview-meta { gap: 5px; }
+      .preview-badge { display: none; }
+      .desktop-stage { min-height: 610px; height: calc(100vh - 110px); border-radius: 17px; }
+      .desktop-label { left: 17px; top: 18px; }
+      .stage-instruction { top: 178px; font-size: 10px; }
+      .dock-root { gap: 6px; max-width: calc(100% - 8px); --dock-along-size: min(var(--dock-width), calc(100vw - 42px)); --dock-thickness: min(var(--dock-height), 132px); }
+      .dock-shell { min-width: 0; max-width: none; overflow: hidden; padding: 0; }
+      .module-row { justify-content: center; gap: 1px; padding-inline: 4px; }
+      .dock-utility { width: 37px; height: 37px; flex-basis: 37px; margin-top: 32px; }
+      .settings-window { grid-template-columns: 64px minmax(0,1fr); height: min(570px, 100%); }
+      .settings-side { padding: 12px 7px; }
+      .settings-brand { justify-content: center; padding: 2px 0 18px; }
+      .settings-brand > div:last-child, .nav-label, .settings-side-note { display: none; }
+      .nav-button { justify-content: center; padding: 0; }
+      .nav-icon { font-size: 17px; }
+      .settings-main { padding: 20px 16px; }
+      .settings-heading { font-size: 19px; }
+      .settings-overlay { padding: 10px; }
+      .module-setting-row { grid-template-columns: minmax(0,1fr) auto; }
+      .order-controls { grid-column: 1 / 2; grid-row: 2; padding-left: 42px; }
+      .module-toggle, .add-module-button { grid-column: 2; grid-row: 1 / span 2; }
+      .taskbar-right { right: 11px; }
+      .dock-root { width: min(var(--dock-width), calc(100vw - 42px)); height: min(var(--dock-height), 132px); }
+      .dock-root[data-edge="left"], .dock-root[data-edge="right"] { width: min(var(--dock-height), 132px); height: min(var(--dock-width), calc(100vh - 150px)); --dock-along-size: min(var(--dock-width), calc(100vh - 150px)); --dock-thickness: min(var(--dock-height), 132px); }
+      .dock-shell { max-width: none; overflow: hidden; padding: 0; }
+      .module-row { width: 100%; height: 100%; justify-content: center; gap: 1px; padding-inline: 4px; }
+      .module-button { width: auto; flex: 1 1 0; }
+      .dock-control-action { width: 37px; height: 37px; }
+      .edge-target[data-edge="top"], .edge-target[data-edge="bottom"] { width: min(82%, 360px); height: 100px; }
+      .edge-target[data-edge="left"], .edge-target[data-edge="right"] { width: 82px; height: min(58%, 340px); }
+      .dimension-grid { grid-template-columns: 1fr; }
+      .service-row { grid-template-columns: 32px minmax(0,1fr) auto; }
+      .service-row .settings-toggle, .service-row .mini-action { grid-column: 3; grid-row: 1 / span 2; }
+      .service-row .status-label { grid-column: 2; grid-row: 2; width: fit-content; }
+      .setting-segmented.four button { padding-inline: 2px; font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <div class="brand-line">
+        <div class="brand-mark" aria-hidden="true">W</div>
+        <div class="brand-copy">
+          <div class="brand-title">Widget Platform</div>
+          <div class="brand-kicker">Desktop UI · Preview</div>
+        </div>
+      </div>
+      <div class="preview-meta">
+        <span class="preview-badge">交互预览 · 示例数据</span>
+        <span class="theme-readout"><i class="small-dot"></i><span id="themeReadout">跟随系统</span></span>
+      </div>
+    </header>
+
+    <main class="desktop-stage" id="stage" aria-label="桌面组件交互预览">
+      <div class="desktop-label">
+        <strong>桌面摘要</strong>
+          <span>默认顶部停靠 · 三个圆形模块</span>
+      </div>
+      <div class="stage-instruction">
+        <span>悬停图标预览</span><span>·</span><span>单击固定面板</span><kbd>Esc</kbd>
+      </div>
+
+      <div class="edge-targets" id="edgeTargets" aria-hidden="true">
+        <div class="edge-target" data-edge="top">上方居中</div>
+        <div class="edge-target" data-edge="right">右侧居中</div>
+        <div class="edge-target" data-edge="bottom">下方居中</div>
+        <div class="edge-target" data-edge="left">左侧居中</div>
+      </div>
+        <div class="dock-root is-initializing" id="dockRoot" data-edge="top" data-visibility="always">
+          <div class="dock-shell" id="dockShell">
+          <div class="module-row" id="moduleRow" role="toolbar" aria-label="已启用模块"></div>
+        </div>
+        <div class="dock-control" data-side="start" id="dragControl">
+          <button class="dock-strip" id="dragStrip" type="button" aria-label="显示移动手柄"></button>
+          <button class="dock-control-action drag-handle" id="dragHandle" type="button" aria-label="按住并拖动组件" title="按住拖动">
+            <span class="grip-glyph" aria-hidden="true">⠿</span>
+          </button>
+        </div>
+        <div class="dock-control" data-side="end" id="settingsControl">
+          <button class="dock-strip" id="settingsStrip" type="button" aria-label="显示设置按钮"></button>
+          <button class="dock-control-action" id="settingsButton" type="button" aria-label="打开设置" title="设置">
+            <span class="gear-glyph" aria-hidden="true">⚙</span>
+          </button>
+        </div>
+      </div>
+      <button class="restore-strip" id="restoreStrip" type="button" aria-label="重新显示组件" title="重新显示组件" hidden></button>
+
+      <section class="popover" id="popover" aria-live="polite"></section>
+
+      <div class="stage-footnote">
+        <strong>轻量 · 就近 · 可收起</strong>
+        <span>模块状态只在需要时展开，不遮住桌面内容。</span>
+      </div>
+      <div class="taskbar" aria-hidden="true">
+        <div class="taskbar-center">
+          <span class="taskbar-icon active">⊞</span>
+          <span class="taskbar-icon">⌕</span>
+          <span class="taskbar-icon">▣</span>
+          <span class="taskbar-icon">◉</span>
+          <span class="taskbar-icon">♫</span>
+        </div>
+        <div class="taskbar-right"><span>网络</span><span>音量</span><span>14:32</span></div>
+      </div>
+
+      <div class="settings-overlay" id="settingsOverlay" hidden>
+        <section class="settings-window" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+          <aside class="settings-side">
+            <div class="settings-brand">
+              <div class="brand-mark" aria-hidden="true">W</div>
+              <div><strong>Widget Platform</strong><span>偏好设置</span></div>
+            </div>
+            <nav class="settings-nav" aria-label="设置分类">
+              <button class="nav-button is-selected" type="button" data-tab="modules"><span class="nav-icon">◉</span><span class="nav-label">模块与顺序</span></button>
+              <button class="nav-button" type="button" data-tab="services"><span class="nav-icon">◎</span><span class="nav-label">服务与账号</span></button>
+              <button class="nav-button" type="button" data-tab="appearance"><span class="nav-icon">◐</span><span class="nav-label">外观</span></button>
+              <button class="nav-button" type="button" data-tab="behavior"><span class="nav-icon">⌖</span><span class="nav-label">位置与交互</span></button>
+              <button class="nav-button" type="button" data-tab="general"><span class="nav-icon">⚙</span><span class="nav-label">通用</span></button>
+            </nav>
+            <div class="settings-side-note">设置自动保存在本机。此页面为交互概念预览。</div>
+          </aside>
+          <div class="settings-main" id="settingsMain">
+            <div class="settings-topline">
+              <div><h1 class="settings-heading" id="settingsTitle">模块与顺序</h1><p class="settings-subheading" id="settingsSubtitle">选择要显示的圆形图标，并调整它们在摘要栏中的顺序。</p></div>
+              <button class="close-settings" id="closeSettings" type="button" aria-label="关闭设置">×</button>
+            </div>
+            <div id="settingsContent"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="page-foot">
+      <span><strong>预览交互：</strong>悬停图标 · 白条展开工具 · 拖动吸附四边 · 收起后点对侧白条恢复</span>
+      <span>此稿用于确认形状与逻辑，不代表已接入真实数据。</span>
+    </footer>
+  </div>
+
+  <script>
+    const MODULES = {
+      todo: {
+        id: "todo", label: "待办", value: "3 / 8", icon: "✓", detail: "今天完成 3 项",
+        description: "本地任务 · 3 项未完成"
+      },
+      focus: {
+        id: "focus", label: "专注", value: "24:36", icon: "◷", detail: "专注中 · 第 1 轮",
+        description: "专注计时 · 进行中"
+      },
+      system: {
+        id: "system", label: "系统", value: "17%", icon: "CPU", detail: "CPU 与内存",
+        description: "系统概览 · 示例读数"
+      },
+      media: {
+        id: "media", label: "媒体", value: "—", icon: "♫", detail: "媒体会话",
+        description: "界面预览 · 尚未接入"
+      },
+      weather: {
+        id: "weather", label: "天气", value: "—", icon: "☼", detail: "天气概览",
+        description: "界面预览 · 尚未接入"
+      }
+    };
+    const DEFAULT_ORDER = ["todo", "focus", "system"];
+    let state = {
+      order: DEFAULT_ORDER.slice(),
+      theme: "system",
+      activeTab: "modules",
+      edge: "top",
+      edgeOffsets: { top: 0.5, right: 0.5, bottom: 0.5, left: 0.5 },
+      width: 320,
+      height: 112,
+      cornerRadius: 24,
+      stripLength: 23,
+      stripOpacity: 76,
+      sizePreset: "medium",
+      visibility: "always",
+      hidden: false,
+      showDragHandle: true,
+      rememberPosition: true,
+      circleMode: "off",
+      services: { todo: true, focus: true, system: true, media: false, weather: false },
+      startup: false,
+      tray: "tray",
+      language: "system",
+      updateStatus: "当前为预览版本",
+      folderStatus: "此预览不会读取或打开本机目录。",
+      notifications: false,
+      hoveredId: null,
+      pinned: false,
+      timerPaused: false,
+      todoDone: [true, false, false]
+    };
+    const stage = document.getElementById("stage");
+    const dockRoot = document.getElementById("dockRoot");
+    const moduleRow = document.getElementById("moduleRow");
+    const popover = document.getElementById("popover");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const settingsMain = document.getElementById("settingsMain");
+    let hideTimer = 0;
+    let dragState = null;
+
+    function loadSavedState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("widget-platform-preview") || "null");
+        if (saved && Array.isArray(saved.order)) {
+          const valid = saved.order.filter((id) => MODULES[id]);
+          state.order = valid.length ? Array.from(new Set(valid)) : DEFAULT_ORDER.slice();
+        }
+        if (saved && ["system", "light", "dark"].includes(saved.theme)) state.theme = saved.theme;
+        if (saved && ["top", "right", "bottom", "left"].includes(saved.edge)) state.edge = saved.edge;
+        if (saved && saved.edgeOffsets) state.edgeOffsets = { ...state.edgeOffsets, ...saved.edgeOffsets };
+        state.edgeOffsets.left = .5;
+        state.edgeOffsets.right = .5;
+        if (saved && Number.isFinite(saved.width)) state.width = Math.max(180, Math.min(720, saved.width));
+        if (saved && Number.isFinite(saved.height)) state.height = Math.max(60, Math.min(240, saved.height));
+        if (saved && Number.isFinite(saved.cornerRadius)) state.cornerRadius = Math.max(0, Math.min(52, saved.cornerRadius));
+        if (saved && Number.isFinite(saved.stripLength)) state.stripLength = Math.max(16, Math.min(36, saved.stripLength));
+        if (saved && Number.isFinite(saved.stripOpacity)) state.stripOpacity = Math.max(40, Math.min(100, saved.stripOpacity));
+        if (saved && ["small", "medium", "large", "custom"].includes(saved.sizePreset)) state.sizePreset = saved.sizePreset;
+        if (saved && ["always", "hover"].includes(saved.visibility)) state.visibility = saved.visibility;
+        if (saved && ["off", "inner", "outer"].includes(saved.circleMode)) state.circleMode = saved.circleMode;
+        if (saved && saved.services) state.services = { ...state.services, ...saved.services };
+        if (saved && typeof saved.showDragHandle === "boolean") state.showDragHandle = saved.showDragHandle;
+        if (saved && typeof saved.rememberPosition === "boolean") state.rememberPosition = saved.rememberPosition;
+        if (saved && typeof saved.startup === "boolean") state.startup = saved.startup;
+        if (saved && typeof saved.notifications === "boolean") state.notifications = saved.notifications;
+        if (saved && ["tray", "none"].includes(saved.tray)) state.tray = saved.tray;
+        if (saved && ["system", "zh-CN", "en-US"].includes(saved.language)) state.language = saved.language;
+      } catch (_) {}
+      const query = new URLSearchParams(window.location.search);
+      const previewTheme = query.get("theme");
+      if (["system", "light", "dark"].includes(previewTheme)) state.theme = previewTheme;
+    }
+    function saveState() {
+      try {
+        localStorage.setItem("widget-platform-preview", JSON.stringify({
+          order: state.order, theme: state.theme, edge: state.edge,
+          edgeOffsets: state.edgeOffsets, width: state.width, height: state.height, cornerRadius: state.cornerRadius,
+          stripLength: state.stripLength, stripOpacity: state.stripOpacity, sizePreset: state.sizePreset,
+          visibility: state.visibility, circleMode: state.circleMode,
+          services: state.services, showDragHandle: state.showDragHandle,
+          rememberPosition: state.rememberPosition, startup: state.startup, notifications: state.notifications,
+          tray: state.tray, language: state.language
+        }));
+      } catch (_) {}
+    }
+    function effectiveTheme() {
+      if (state.theme !== "system") return state.theme;
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    function updateTheme() {
+      const resolved = effectiveTheme();
+      document.documentElement.dataset.theme = resolved;
+      const label = state.theme === "system" ? "跟随系统 · " + (resolved === "dark" ? "深色" : "浅色") : (resolved === "dark" ? "深色" : "浅色");
+      document.getElementById("themeReadout").textContent = label;
+    }
+    function moduleValue(id) {
+      if (id === "todo") return todoCompletedCount() + " / 8";
+      if (id === "focus" && state.timerPaused) return "暂停";
+      return MODULES[id].value;
+    }
+    function todoCompletedCount() {
+      return 2 + state.todoDone.filter(Boolean).length;
+    }
+    function renderDock() {
+      moduleRow.innerHTML = state.order.map((id) => {
+        const item = MODULES[id];
+        const wordmark = id === "system";
+        const progress = ({ todo: 38, focus: 62, system: 17, media: 0, weather: 0 })[id] || 0;
+        return '<button class="module-button" type="button" data-module="' + id + '" aria-label="' + item.label + '，' + moduleValue(id) + '" aria-expanded="' + (state.pinned && state.hoveredId === id) + '">' +
+          '<span class="module-orbit" style="--ring-progress:' + progress + '%"><span class="module-symbol' + (wordmark ? ' wordmark' : '') + '" aria-hidden="true">' + item.icon + '</span></span>' +
+          '<span class="module-readout">' + moduleValue(id) + '</span></button>';
+      }).join("");
+      moduleRow.querySelectorAll("[data-module]").forEach((button) => {
+        button.addEventListener("mouseenter", () => showPopover(button.dataset.module, false));
+        button.addEventListener("focus", () => showPopover(button.dataset.module, false));
+        button.addEventListener("mouseleave", scheduleHide);
+        button.addEventListener("blur", scheduleHide);
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const id = button.dataset.module;
+          if (state.pinned && state.hoveredId === id) closePopover();
+          else showPopover(id, true);
+        });
+      });
+      placePopover();
+      syncDock();
+    }
+    function oppositeEdge(edge) {
+      return ({ top: "bottom", bottom: "top", left: "right", right: "left" })[edge] || "bottom";
+    }
+    function setDockOrientation(edge) {
+      dockRoot.dataset.edge = edge;
+    }
+    function applyDockPlacement() {
+      const isHorizontal = state.edge === "top" || state.edge === "bottom";
+      const compact = window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+      const alongViewport = isHorizontal ? window.innerWidth - 42 : window.innerHeight - 150;
+      const displayedAlong = compact ? Math.min(state.width, Math.max(1, alongViewport)) : state.width;
+      const displayedThickness = compact ? Math.min(state.height, 132) : state.height;
+      const offset = ["left", "right"].includes(state.edge)
+        ? .5
+        : Math.max(.12, Math.min(.88, Number(state.edgeOffsets[state.edge]) || .5));
+      dockRoot.style.setProperty("--dock-width", state.width + "px");
+      dockRoot.style.setProperty("--dock-height", state.height + "px");
+      dockRoot.style.setProperty("--dock-thickness", displayedThickness + "px");
+      dockRoot.style.setProperty("--dock-along-size", displayedAlong + "px");
+      dockRoot.style.setProperty("--dock-module-count", String(Math.max(1, state.order.length)));
+      dockRoot.style.setProperty("--dock-corner-radius", state.cornerRadius + "px");
+      dockRoot.style.setProperty("--dock-strip-length", state.stripLength + "px");
+      dockRoot.style.setProperty("--dock-strip-opacity", String(state.stripOpacity / 100));
+      setDockOrientation(state.edge);
+      dockRoot.style.left = "auto";
+      dockRoot.style.right = "auto";
+      dockRoot.style.top = "auto";
+      dockRoot.style.bottom = "auto";
+      if (state.edge === "top") {
+        dockRoot.style.left = (offset * 100) + "%";
+        dockRoot.style.top = "0px";
+        dockRoot.style.transform = "translateX(-50%)";
+      } else if (state.edge === "bottom") {
+        dockRoot.style.left = (offset * 100) + "%";
+        dockRoot.style.bottom = "42px";
+        dockRoot.style.transform = "translateX(-50%)";
+      } else if (state.edge === "left") {
+        dockRoot.style.left = "0px";
+        dockRoot.style.top = (offset * 100) + "%";
+        dockRoot.style.transform = "translateY(-50%)";
+      } else {
+        dockRoot.style.right = "0px";
+        dockRoot.style.top = (offset * 100) + "%";
+        dockRoot.style.transform = "translateY(-50%)";
+      }
+    }
+    function syncDock() {
+      applyDockPlacement();
+      dockRoot.dataset.visibility = state.visibility;
+      dockRoot.dataset.ring = state.circleMode;
+      dockRoot.classList.toggle("is-hidden", state.hidden);
+      dockRoot.classList.toggle("is-collapsed", state.visibility === "hover" && !dockRoot.matches(":hover") && !state.hidden);
+      document.getElementById("dragControl").hidden = !state.showDragHandle;
+      const restoreStrip = document.getElementById("restoreStrip");
+      restoreStrip.dataset.edge = oppositeEdge(state.edge);
+      restoreStrip.hidden = !state.hidden;
+    }
+    function popoverMarkup(id) {
+      const item = MODULES[id];
+      let content = "";
+      if (id === "todo") {
+        const tasks = ["整理今天的待办", "确认窗口位置逻辑", "回顾本周计划"];
+        const completed = todoCompletedCount();
+        content = '<div class="todo-progress"><span>今日进度</span><strong>' + completed + ' / 8 已完成</strong></div><div class="progress-track"><i style="width:' + (completed / 8 * 100) + '%"></i></div><div class="todo-list">' +
+          tasks.map((task, index) => '<button class="todo-line' + (state.todoDone[index] ? ' completed' : ' pending') + '" type="button" data-todo="' + index + '" aria-pressed="' + state.todoDone[index] + '"><span class="todo-check">✓</span><span>' + task + '</span></button>').join("") +
+          '</div>';
+      } else if (id === "focus") {
+        content = '<div class="timer-state"><i></i><span>' + (state.timerPaused ? "已暂停" : "专注中 · 第 1 轮") + '</span></div><div class="timer-value">24:36</div><div class="timer-actions"><button class="action-button primary" type="button" data-action="timer-toggle">' + (state.timerPaused ? "继续" : "暂停") + '</button><button class="action-button" type="button" data-action="timer-reset">重置</button></div>';
+      } else if (id === "system") {
+        content = '<div class="metric-grid"><div class="metric-box"><div class="metric-top"><span>CPU</span><strong>17%</strong></div><div class="progress-track"><i style="--fill:17%"></i></div></div><div class="metric-box"><div class="metric-top"><span>内存</span><strong>62%</strong></div><div class="progress-track"><i style="--fill:62%"></i></div></div></div>';
+      } else {
+        const title = id === "media" ? "当前没有可显示的媒体会话" : "天气数据尚未接入";
+        const note = id === "media" ? "连接播放器后，这里会显示曲目和播放控制。" : "接入天气来源后，这里会显示当前位置和温度。";
+        content = '<div class="empty-state"><strong>' + title + '</strong><span>' + note + '</span></div>';
+      }
+      return '<div class="popover-head"><div class="popover-mark">' + item.icon + '</div><div class="popover-title"><strong>' + item.label + '</strong><span>' + item.detail + '</span></div><span class="sample-pill">示例</span></div>' +
+        '<div class="popover-content">' + content + '</div><div class="popover-foot"><span>示例数据 · 非实时</span><span>' + (state.pinned ? "已固定" : "悬停预览") + '</span></div>';
+    }
+    function showPopover(id, pin) {
+      if (!MODULES[id] || !state.order.includes(id)) return;
+      window.clearTimeout(hideTimer);
+      state.hoveredId = id;
+      if (pin) state.pinned = true;
+      popover.innerHTML = popoverMarkup(id);
+      popover.classList.add("is-visible");
+      popover.classList.remove("is-above");
+      popover.removeAttribute("hidden");
+      moduleRow.querySelectorAll(".module-button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.module === id);
+        button.setAttribute("aria-expanded", String(state.pinned && button.dataset.module === id));
+      });
+      placePopover();
+    }
+    function placePopover() {
+      if (!state.hoveredId || !popover.classList.contains("is-visible")) return;
+      const button = moduleRow.querySelector('[data-module="' + state.hoveredId + '"]');
+      if (!button) return;
+      const icon = button.querySelector(".module-orbit");
+      const stageRect = stage.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+      const iconRect = icon ? icon.getBoundingClientRect() : buttonRect;
+      const rootRect = dockRoot.getBoundingClientRect();
+      const width = Math.min(356, stageRect.width - 28);
+      popover.style.width = width + "px";
+      const anchorX = buttonRect.left + buttonRect.width / 2 - stageRect.left;
+      const estimatedHeight = popover.offsetHeight || 230;
+      let left = anchorX - width / 2;
+      let top = 0;
+      let placeAbove = false;
+      if (state.edge === "top") {
+        top = rootRect.bottom - stageRect.top + 13;
+        placeAbove = top + estimatedHeight > stageRect.height - 52 && rootRect.top - stageRect.top > estimatedHeight + 24;
+        if (placeAbove) top = rootRect.top - stageRect.top - estimatedHeight - 12;
+      } else if (state.edge === "bottom") {
+        top = rootRect.top - stageRect.top - estimatedHeight - 13;
+        placeAbove = true;
+      } else {
+        const centerY = iconRect.top + iconRect.height / 2 - stageRect.top;
+        top = centerY - estimatedHeight / 2;
+        left = state.edge === "left" ? rootRect.right - stageRect.left + 13 : rootRect.left - stageRect.left - width - 13;
+      }
+      left = Math.max(14, Math.min(stageRect.width - width - 14, left));
+      top = Math.max(14, Math.min(stageRect.height - estimatedHeight - 52, top));
+      popover.style.left = left + "px";
+      popover.style.top = top + "px";
+      popover.style.setProperty("--arrow-x", Math.max(18, Math.min(width - 18, anchorX - left)) + "px");
+      popover.style.setProperty("--arrow-y", Math.max(24, Math.min(estimatedHeight - 24, iconRect.top + iconRect.height / 2 - stageRect.top - top)) + "px");
+      popover.classList.toggle("is-side-left", state.edge === "left");
+      popover.classList.toggle("is-side-right", state.edge === "right");
+      popover.classList.toggle("is-above", placeAbove);
+    }
+    function scheduleHide() {
+      if (state.pinned) return;
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => closePopover(), 170);
+    }
+    function closePopover() {
+      state.pinned = false;
+      state.hoveredId = null;
+      popover.classList.remove("is-visible", "is-above");
+      popover.setAttribute("hidden", "");
+      moduleRow.querySelectorAll(".module-button").forEach((button) => {
+        button.classList.remove("is-active");
+        button.setAttribute("aria-expanded", "false");
+      });
+    }
+    popover.addEventListener("mouseenter", () => window.clearTimeout(hideTimer));
+    popover.addEventListener("mouseleave", scheduleHide);
+    popover.addEventListener("click", (event) => {
+      const todo = event.target.closest("[data-todo]");
+      if (todo) {
+        const index = Number(todo.dataset.todo);
+        state.todoDone[index] = !state.todoDone[index];
+        showPopover("todo", true);
+        return;
+      }
+      const action = event.target.closest("[data-action]");
+      if (!action) return;
+      if (action.dataset.action === "timer-toggle") {
+        state.timerPaused = !state.timerPaused;
+        renderDock();
+        showPopover("focus", true);
+      } else if (action.dataset.action === "timer-reset") {
+        state.timerPaused = false;
+        renderDock();
+        showPopover("focus", true);
+      }
+    });
+    dockRoot.addEventListener("mouseleave", () => { scheduleHide(); syncDock(); });
+    dockRoot.addEventListener("mouseenter", () => { window.clearTimeout(hideTimer); syncDock(); });
+    document.getElementById("settingsButton").addEventListener("click", openSettings);
+    document.getElementById("closeSettings").addEventListener("click", closeSettings);
+    settingsOverlay.addEventListener("click", (event) => { if (event.target === settingsOverlay) closeSettings(); });
+    document.getElementById("restoreStrip").addEventListener("click", () => {
+      state.hidden = false;
+      state.visibility = "always";
+      syncDock();
+      saveState();
+      if (!settingsOverlay.hidden) renderSettings();
+    });
+    settingsMain.addEventListener("click", handleSettingsClick);
+    document.querySelector(".settings-nav").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-tab]");
+      if (!button) return;
+      state.activeTab = button.dataset.tab;
+      renderSettings();
+    });
+    settingsMain.addEventListener("input", handleDimensionInput);
+    settingsMain.addEventListener("change", (event) => {
+      if (event.target.id === "languageSelect") {
+        state.language = event.target.value;
+        saveState();
+        renderSettings();
+      }
+    });
+    function openSettings() {
+      closePopover();
+      settingsOverlay.hidden = false;
+      state.activeTab = "modules";
+      renderSettings();
+      document.getElementById("closeSettings").focus();
+    }
+    function closeSettings() {
+      settingsOverlay.hidden = true;
+      if (state.hidden) document.getElementById("restoreStrip").focus();
+      else document.getElementById("settingsButton").focus();
+    }
+    function renderSettings() {
+      const navLabels = {
+        modules: ["模块与顺序", "选择要显示的圆形图标，并调整摘要栏顺序。"],
+        services: ["服务与账号", "管理模块使用的数据来源与服务连接。"],
+        appearance: ["外观", "调整组件显示方式、尺寸、圆角、控制白条、主题和进度圆环。"],
+        behavior: ["位置与交互", "设置停靠边缘、拖动方式和隐藏后的唤回入口。"],
+        general: ["通用", "启动、托盘、语言、更新和应用信息。"]
+      };
+      document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("is-selected", button.dataset.tab === state.activeTab));
+      document.getElementById("settingsTitle").textContent = navLabels[state.activeTab][0];
+      document.getElementById("settingsSubtitle").textContent = navLabels[state.activeTab][1];
+      if (state.activeTab === "modules") renderModuleSettings();
+      else if (state.activeTab === "services") renderServicesSettings();
+      else if (state.activeTab === "appearance") renderAppearanceSettings();
+      else if (state.activeTab === "behavior") renderBehaviorSettings();
+      else renderGeneralSettings();
+    }
+    function moduleSettingRow(id, index) {
+      const item = MODULES[id];
+      return '<div class="module-setting-row"><div class="setting-module-name"><span class="tiny-orbit">' + item.icon + '</span><span><strong>' + item.label + '</strong><small>' + item.description + '</small></span></div>' +
+        '<div class="order-controls"><button class="order-button" type="button" data-action="up" data-id="' + id + '" aria-label="上移 ' + item.label + '"' + (index === 0 ? ' disabled' : '') + '>↑</button><button class="order-button" type="button" data-action="down" data-id="' + id + '" aria-label="下移 ' + item.label + '"' + (index === state.order.length - 1 ? ' disabled' : '') + '>↓</button></div>' +
+        '<button class="module-toggle" type="button" data-action="remove" data-id="' + id + '" aria-label="隐藏 ' + item.label + '" aria-pressed="true"></button></div>';
+    }
+    function renderModuleSettings() {
+      const rows = state.order.map((id, index) => moduleSettingRow(id, index)).join("");
+      const available = Object.keys(MODULES).filter((id) => !state.order.includes(id));
+      const addRows = available.map((id) => '<div class="module-setting-row"><div class="setting-module-name"><span class="tiny-orbit">' + MODULES[id].icon + '</span><span><strong>' + MODULES[id].label + '</strong><small>' + MODULES[id].description + '</small></span></div><span class="sample-pill">预览</span><button class="add-module-button" type="button" data-action="add" data-id="' + id + '">添加</button></div>').join("");
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">显示的模块 <span class="sample-pill">' + state.order.length + ' 个</span></h2><p class="section-description">默认显示 3 个；顺序会同步到顶部圆形摘要栏。</p><div class="setting-card">' + rows + '</div></section>' +
+        (available.length ? '<section class="settings-section"><h2 class="section-title">可添加模块</h2><p class="section-description">增加图标后，摘要栏会随模块数量伸展。</p><div class="setting-card">' + addRows + '</div></section>' : '') +
+        '<div class="settings-status"><i></i><span>顺序与显示数量已在此预览中即时更新。</span></div>';
+    }
+    function renderServicesSettings() {
+      const entries = [
+        ["todo", "本地待办", "本机任务数据 · 本地", "✓"],
+        ["focus", "专注计时", "本机计时状态 · 本地", "◷"],
+        ["system", "Windows 系统", "CPU 与内存读数", "▦"],
+        ["media", "媒体会话", "当前播放内容与控制", "♫"],
+        ["weather", "天气服务", "位置与天气信息", "☼"]
+      ];
+      const rows = entries.map(([id, name, note, icon]) => {
+        const connected = state.services[id];
+        const control = id === "todo" || id === "focus" || id === "system"
+          ? '<button class="settings-toggle" type="button" data-action="service-toggle" data-id="' + id + '" aria-pressed="' + connected + '" aria-label="切换 ' + name + '"></button>'
+          : '<button class="mini-action" type="button" data-action="service-connect" data-id="' + id + '">' + (connected ? "已连接" : "连接") + '</button>';
+        return '<div class="service-row"><span class="service-mark">' + icon + '</span><span><strong>' + name + '</strong><small>' + note + '</small></span><span class="status-label' + (connected ? ' ready' : '') + '">' + (connected ? "已连接" : "未连接") + '</span>' + control + '</div>';
+      }).join("");
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">数据与服务</h2><p class="section-description">此预览只模拟连接状态，不会访问系统账户或外部服务。</p><div class="setting-card">' + rows + '</div></section>' +
+        '<section class="settings-section"><div class="setting-card"><div class="switch-row"><span><strong>允许模块通知</strong><small>服务状态变化时显示桌面通知。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="notifications" aria-pressed="' + state.notifications + '"></button></div></div></section>' +
+        '<div class="settings-status"><i></i><span>本地模块可用；媒体和天气为连接状态示例。</span></div>';
+    }
+    function renderAppearanceSettings() {
+      const choices = [["system", "跟随系统"], ["light", "浅色"], ["dark", "深色"]];
+      const visibilityChoices = [["always", "始终显示"], ["hover", "悬停时显示"], ["hidden", "收起至提示条"]];
+      const ringChoices = [["off", "关闭"], ["inner", "内侧"], ["outer", "外侧"]];
+      const sizeChoices = [["small", "小"], ["medium", "中"], ["large", "大"]];
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">显示</h2><p class="section-description">收起时，屏幕对侧保留一条白色提示条，可点击重新显示。</p><div class="setting-segmented">' +
+        visibilityChoices.map(([value, label]) => '<button class="' + (state.visibility === value ? 'is-selected' : '') + '" type="button" data-action="visibility" data-value="' + value + '" aria-pressed="' + (state.visibility === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">组件大小</h2><p class="section-description">选择预设大小，或分别调整整体宽度和高度。</p><div class="setting-segmented size-preset-row">' +
+        sizeChoices.map(([value, label]) => '<button class="' + (state.sizePreset === value ? 'is-selected' : '') + '" type="button" data-action="size-preset" data-value="' + value + '" aria-pressed="' + (state.sizePreset === value) + '">' + label + '</button>').join("") +
+        '</div><div class="setting-card"><div class="dimension-grid">' +
+        '<div class="dimension-field"><label for="widthRange">宽度</label><input id="widthNumber" type="number" min="180" max="720" step="5" value="' + state.width + '" aria-label="宽度像素"><input id="widthRange" data-dimension="width" type="range" min="180" max="720" step="5" value="' + state.width + '"><small>180–720 px</small></div>' +
+        '<div class="dimension-field"><label for="heightRange">高度</label><input id="heightNumber" type="number" min="60" max="240" step="2" value="' + state.height + '" aria-label="高度像素"><input id="heightRange" data-dimension="height" type="range" min="60" max="240" step="2" value="' + state.height + '"><small>60–240 px</small></div>' +
+        '</div></div><div class="settings-footer-note"><button class="mini-action" type="button" data-action="reset-size">恢复默认尺寸</button><span>当前：' + (state.sizePreset === "custom" ? "自定义" : ({ small: "小", medium: "中", large: "大" })[state.sizePreset]) + '</span></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">卡片圆角</h2><p class="section-description">四个角使用相同半径；半径会受卡片短边限制。</p><div class="setting-card">' +
+        '<div class="setting-slider-row"><label for="cornerRadiusRange">圆角大小</label><output id="cornerRadiusValue" for="cornerRadiusRange">' + state.cornerRadius + ' px</output><input id="cornerRadiusRange" data-style-setting="cornerRadius" type="range" min="0" max="52" step="1" value="' + state.cornerRadius + '"><small>0–52 px</small></div>' +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">两侧控制白条</h2><p class="section-description">调整移动与设置入口的白条长度和透明度，悬停图标会朝卡片外侧展开。</p><div class="setting-card">' +
+        '<div class="setting-slider-row"><label for="stripLengthRange">白条长度</label><output id="stripLengthValue" for="stripLengthRange">' + state.stripLength + ' px</output><input id="stripLengthRange" data-style-setting="stripLength" type="range" min="16" max="36" step="1" value="' + state.stripLength + '"><small>16–36 px</small></div>' +
+        '<div class="setting-slider-row"><label for="stripOpacityRange">白条透明度</label><output id="stripOpacityValue" for="stripOpacityRange">' + state.stripOpacity + '%</output><input id="stripOpacityRange" data-style-setting="stripOpacity" type="range" min="40" max="100" step="1" value="' + state.stripOpacity + '"><small>数值越低，白条越透明</small></div>' +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">颜色主题</h2><p class="section-description">默认跟随 Windows；系统切换外观时，组件同步切换。</p><div class="theme-segmented">' +
+        choices.map(([value, label]) => '<button class="theme-choice' + (state.theme === value ? ' is-selected' : '') + '" type="button" data-action="theme" data-value="' + value + '" aria-pressed="' + (state.theme === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">进度圆环</h2><p class="section-description">在圆形图标上显示服务进度或额度状态。</p><div class="setting-segmented">' +
+        ringChoices.map(([value, label]) => '<button class="' + (state.circleMode === value ? 'is-selected' : '') + '" type="button" data-action="circle-mode" data-value="' + value + '" aria-pressed="' + (state.circleMode === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<div class="settings-status"><i></i><span>当前主题：' + (state.theme === "system" ? "跟随系统 · " + (effectiveTheme() === "dark" ? "深色" : "浅色") : (state.theme === "dark" ? "深色" : "浅色")) + '</span></div>';
+    }
+    function renderBehaviorSettings() {
+      const edges = [["left", "左侧"], ["right", "右侧"], ["top", "顶部"], ["bottom", "底部"]];
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">停靠边缘</h2><p class="section-description">默认贴边显示；拖动手柄时会出现四边虚线预览区域。</p><div class="setting-segmented four">' +
+        edges.map(([value, label]) => '<button class="' + (state.edge === value ? 'is-selected' : '') + '" type="button" data-action="position" data-value="' + value + '" aria-pressed="' + (state.edge === value) + '">' + label + '</button>').join("") +
+        '</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">边缘操作</h2><div class="setting-card">' +
+        '<div class="switch-row"><span><strong>显示移动手柄</strong><small>悬停左侧白条后显示拖动按钮。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="showDragHandle" aria-pressed="' + state.showDragHandle + '"></button></div>' +
+        '<div class="switch-row"><span><strong>记住顶部和底部的位置</strong><small>左右侧停靠固定垂直居中；顶部和底部可保留水平位置。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="rememberPosition" aria-pressed="' + state.rememberPosition + '"></button></div>' +
+        '</div><div class="settings-footer-note">鼠标悬停右侧白条可打开设置。悬停图标显示详情，单击固定；按 Esc 或点空白处收起。</div></section>' +
+        '<section class="settings-section"><h2 class="section-title">当前布局</h2><div class="setting-card"><div class="behavior-row"><div><strong>' + ({top:"顶部",right:"右侧",bottom:"底部",left:"左侧"})[state.edge] + '停靠</strong><small>重新居中会把组件放回当前边缘中央。</small></div><button class="mini-action" type="button" data-action="recenter">重新居中</button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">收起</h2><div class="setting-card"><div class="behavior-row"><div><strong>收起到屏幕对侧提示条</strong><small>主体收起后，对侧边缘保留小白条；点击可恢复。</small></div><button class="mini-action" type="button" data-action="hide-now">立即收起</button></div></div></section>' +
+        '<div class="settings-status"><i></i><span>当前停靠边：' + ({top:"顶部",right:"右侧",bottom:"底部",left:"左侧"})[state.edge] + '</span></div>';
+    }
+    function renderGeneralSettings() {
+      document.getElementById("settingsContent").innerHTML =
+        '<section class="settings-section"><h2 class="section-title">启动</h2><div class="setting-card"><div class="switch-row"><span><strong>登录时启动</strong><small>登录 Windows 后自动显示桌面组件。</small></span><button class="settings-toggle" type="button" data-action="toggle" data-setting="startup" aria-pressed="' + state.startup + '"></button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">应用图标</h2><div class="setting-card"><div class="behavior-row"><div><strong>托盘图标</strong><small>在系统托盘保留入口，或完全隐藏图标。</small></div><div class="setting-segmented"><button class="' + (state.tray === "tray" ? 'is-selected' : '') + '" type="button" data-action="tray" data-value="tray">系统托盘</button><button class="' + (state.tray === "none" ? 'is-selected' : '') + '" type="button" data-action="tray" data-value="none">不显示</button></div></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">语言</h2><div class="setting-card"><div class="behavior-row"><div><strong>界面语言</strong><small>默认跟随系统语言。</small></div><select id="languageSelect" class="setting-select" aria-label="界面语言"><option value="system"' + (state.language === "system" ? ' selected' : '') + '>跟随系统</option><option value="zh-CN"' + (state.language === "zh-CN" ? ' selected' : '') + '>简体中文</option><option value="en-US"' + (state.language === "en-US" ? ' selected' : '') + '>English</option></select></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">更新</h2><div class="setting-card"><div class="behavior-row"><div><strong>版本 0.1.0 · UI 预览</strong><small>' + state.updateStatus + '</small></div><button class="mini-action" type="button" data-action="check-updates">检查更新</button></div></div></section>' +
+        '<section class="settings-section"><h2 class="section-title">数据与关于</h2><div class="setting-card"><div class="behavior-row"><div><strong>数据文件夹</strong><small>' + state.folderStatus + '</small></div><button class="mini-action" type="button" data-action="open-folder">打开文件夹</button></div><div class="behavior-row"><div><strong>Widget Platform</strong><small>桌面小组件 · 交互概念预览</small></div><span class="sample-pill">版本 0.1.0</span></div></div></section>' +
+        '<div class="settings-status warning"><i></i><span>设置交互只保存在当前浏览器，不会修改系统启动项或真实服务。</span></div>';
+    }
+    function handleDimensionInput(event) {
+      const styleSetting = event.target.dataset.styleSetting;
+      if (styleSetting) {
+        const limits = { cornerRadius: [0, 52], stripLength: [16, 36], stripOpacity: [40, 100] };
+        const [min, max] = limits[styleSetting];
+        const value = Math.max(min, Math.min(max, Number(event.target.value) || 0));
+        state[styleSetting] = value;
+        const output = document.getElementById(styleSetting === "cornerRadius" ? "cornerRadiusValue" : styleSetting === "stripLength" ? "stripLengthValue" : "stripOpacityValue");
+        if (output) output.textContent = value + (styleSetting === "stripOpacity" ? "%" : " px");
+        syncDock();
+        saveState();
+        return;
+      }
+      const field = event.target.dataset.dimension || (event.target.id === "widthNumber" ? "width" : event.target.id === "heightNumber" ? "height" : "");
+      if (!field) return;
+      const min = field === "width" ? 180 : 60;
+      const max = field === "width" ? 720 : 240;
+      const value = Math.max(min, Math.min(max, Number(event.target.value) || min));
+      state[field] = value;
+      state.sizePreset = "custom";
+      const range = document.getElementById(field + "Range");
+      const number = document.getElementById(field + "Number");
+      if (range) range.value = String(value);
+      if (number) number.value = String(value);
+      applyDockPlacement();
+      if (field === "width" && ["left", "right"].includes(state.edge)) dockRoot.style.setProperty("--dock-width", state.width + "px");
+      if (field === "height" && ["left", "right"].includes(state.edge)) dockRoot.style.setProperty("--dock-height", state.height + "px");
+      saveState();
+    }
+    function handleSettingsClick(event) {
+      const button = event.target.closest("[data-action]");
+      if (!button || button.disabled) return;
+      const id = button.dataset.id;
+      const index = state.order.indexOf(id);
+      if (button.dataset.action === "add" && !state.order.includes(id)) state.order.push(id);
+      if (button.dataset.action === "remove" && index >= 0) state.order.splice(index, 1);
+      if (button.dataset.action === "up" && index > 0) [state.order[index - 1], state.order[index]] = [state.order[index], state.order[index - 1]];
+      if (button.dataset.action === "down" && index >= 0 && index < state.order.length - 1) [state.order[index + 1], state.order[index]] = [state.order[index], state.order[index + 1]];
+      if (button.dataset.action === "theme") {
+        state.theme = button.dataset.value;
+        updateTheme();
+      }
+      if (button.dataset.action === "visibility") {
+        state.visibility = button.dataset.value;
+        state.hidden = state.visibility === "hidden";
+      }
+      if (button.dataset.action === "circle-mode") state.circleMode = button.dataset.value;
+      if (button.dataset.action === "position") {
+        state.edge = button.dataset.value;
+        if (!state.rememberPosition) state.edgeOffsets = { top: .5, right: .5, bottom: .5, left: .5 };
+      }
+      if (button.dataset.action === "toggle") state[button.dataset.setting] = !state[button.dataset.setting];
+      if (button.dataset.action === "service-toggle") state.services[id] = !state.services[id];
+      if (button.dataset.action === "service-connect") state.services[id] = !state.services[id];
+      if (button.dataset.action === "tray") state.tray = button.dataset.value;
+      if (button.dataset.action === "size-preset") {
+        state.sizePreset = button.dataset.value;
+        const sizes = { small: [220, 76], medium: [320, 112], large: [400, 136] };
+        state.width = sizes[state.sizePreset][0];
+        state.height = sizes[state.sizePreset][1];
+      }
+      if (button.dataset.action === "reset-size") { state.width = 320; state.height = 112; state.sizePreset = "medium"; }
+      if (button.dataset.action === "recenter") state.edgeOffsets[state.edge] = .5;
+      if (button.dataset.action === "hide-now") { state.visibility = "hidden"; state.hidden = true; }
+      if (button.dataset.action === "check-updates") state.updateStatus = "已检查 · 预览中不连接更新服务";
+      if (button.dataset.action === "open-folder") state.folderStatus = "原型不会实际打开本机目录。";
+      const action = button.dataset.action;
+      if (["add", "remove", "up", "down"].includes(action)) renderDock();
+      else syncDock();
+      saveState();
+      renderSettings();
+      if (state.hidden && ["visibility", "hide-now"].includes(action)) closeSettings();
+    }
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (!settingsOverlay.hidden) closeSettings();
+        else closePopover();
+      }
+    });
+    stage.addEventListener("pointerdown", (event) => {
+      if (event.target.closest("#dockRoot") || event.target.closest("#popover") || event.target.closest(".settings-window")) return;
+      if (state.pinned) closePopover();
+    });
+    function nearestEdge(clientX, clientY) {
+      const rect = stage.getBoundingClientRect();
+      const distances = {
+        top: clientY - rect.top,
+        right: rect.right - clientX,
+        bottom: rect.bottom - clientY,
+        left: clientX - rect.left
+      };
+      return Object.keys(distances).sort((a, b) => distances[a] - distances[b])[0];
+    }
+    function setActiveDropEdge(edge) {
+      document.querySelectorAll(".edge-target").forEach((target) => target.classList.toggle("is-active", target.dataset.edge === edge));
+    }
+    function edgeTargetAt(clientX, clientY) {
+      for (const target of document.querySelectorAll(".edge-target")) {
+        const rect = target.getBoundingClientRect();
+        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) return target.dataset.edge;
+      }
+      return null;
+    }
+    function moveDockRootAtPointer(event, stageRect) {
+      const rootWidth = dockRoot.offsetWidth;
+      const rootHeight = dockRoot.offsetHeight;
+      const x = Math.max(3, Math.min(stageRect.width - rootWidth - 3, event.clientX - stageRect.left - dragState.offsetX));
+      const y = Math.max(3, Math.min(stageRect.height - rootHeight - 3, event.clientY - stageRect.top - dragState.offsetY));
+      dockRoot.style.left = x + "px";
+      dockRoot.style.top = y + "px";
+      dockRoot.style.right = "auto";
+      dockRoot.style.bottom = "auto";
+      dockRoot.style.transform = "none";
+    }
+    function switchDragOrientation(edge, event, stageRect) {
+      if (!dragState || dockRoot.dataset.edge === edge) return;
+      const oldHandleRect = document.getElementById("dragHandle").getBoundingClientRect();
+      const fractionX = Math.max(0, Math.min(1, (event.clientX - oldHandleRect.left) / oldHandleRect.width));
+      const fractionY = Math.max(0, Math.min(1, (event.clientY - oldHandleRect.top) / oldHandleRect.height));
+      setDockOrientation(edge);
+      const rootRect = dockRoot.getBoundingClientRect();
+      const newHandleRect = document.getElementById("dragHandle").getBoundingClientRect();
+      dragState.offsetX = newHandleRect.left - rootRect.left + fractionX * newHandleRect.width;
+      dragState.offsetY = newHandleRect.top - rootRect.top + fractionY * newHandleRect.height;
+      dragState.previewEdge = edge;
+      moveDockRootAtPointer(event, stageRect);
+    }
+    document.getElementById("dragHandle").addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      const stageRect = stage.getBoundingClientRect();
+      const rootRect = dockRoot.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startEdge: state.edge,
+        previewEdge: state.edge,
+        offsetX: event.clientX - rootRect.left,
+        offsetY: event.clientY - rootRect.top,
+        lastX: event.clientX,
+        lastY: event.clientY,
+      };
+      dockRoot.classList.add("is-dragging");
+      dockRoot.classList.remove("is-collapsed");
+      dockRoot.style.left = (rootRect.left - stageRect.left) + "px";
+      dockRoot.style.top = (rootRect.top - stageRect.top) + "px";
+      dockRoot.style.right = "auto";
+      dockRoot.style.bottom = "auto";
+      dockRoot.style.transform = "none";
+      document.getElementById("edgeTargets").classList.add("is-visible");
+      setActiveDropEdge(edgeTargetAt(event.clientX, event.clientY));
+      event.currentTarget.setPointerCapture(event.pointerId);
+      closePopover();
+      event.preventDefault();
+    });
+    document.getElementById("dragHandle").addEventListener("pointermove", (event) => {
+      if (!dragState || dragState.pointerId !== event.pointerId) return;
+      const rect = stage.getBoundingClientRect();
+      moveDockRootAtPointer(event, rect);
+      dragState.lastX = event.clientX;
+      dragState.lastY = event.clientY;
+      const targetEdge = edgeTargetAt(event.clientX, event.clientY);
+      setActiveDropEdge(targetEdge);
+      if (targetEdge) switchDragOrientation(targetEdge, event, rect);
+      else if (dockRoot.dataset.edge !== dragState.startEdge) switchDragOrientation(dragState.startEdge, event, rect);
+    });
+    function finishDrag(event) {
+      if (!dragState) return;
+      if (event && event.pointerId !== undefined && dragState.pointerId !== event.pointerId) return;
+      if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+        dragState.lastX = event.clientX;
+        dragState.lastY = event.clientY;
+      }
+      const stageRect = stage.getBoundingClientRect();
+      const targetEdge = edgeTargetAt(dragState.lastX, dragState.lastY);
+      const edge = targetEdge || nearestEdge(dragState.lastX, dragState.lastY);
+      const lastPointer = { clientX: dragState.lastX, clientY: dragState.lastY };
+      if (dockRoot.dataset.edge !== edge) switchDragOrientation(edge, lastPointer, stageRect);
+      const rect = stage.getBoundingClientRect();
+      state.edge = edge;
+      if (targetEdge) {
+        state.edgeOffsets[edge] = .5;
+      } else if (state.rememberPosition && (edge === "top" || edge === "bottom")) {
+        const dockRect = dockRoot.getBoundingClientRect();
+        state.edgeOffsets[edge] = Math.max(.12, Math.min(.88, (dockRect.left + dockRect.width / 2 - rect.left) / rect.width));
+      } else if (state.rememberPosition && (edge === "left" || edge === "right")) {
+        const dockRect = dockRoot.getBoundingClientRect();
+        state.edgeOffsets[edge] = Math.max(.12, Math.min(.88, (dockRect.top + dockRect.height / 2 - rect.top) / rect.height));
+      } else {
+        state.edgeOffsets[edge] = .5;
+      }
+      if (edge === "left" || edge === "right") {
+        state.edgeOffsets[edge] = .5;
+      }
+      if (targetEdge && (edge === "top" || edge === "bottom")) {
+        state.edgeOffsets[edge] = .5;
+      }
+      dragState = null;
+      dockRoot.classList.remove("is-dragging");
+      document.getElementById("edgeTargets").classList.remove("is-visible");
+      document.querySelectorAll(".edge-target").forEach((target) => target.classList.remove("is-active"));
+      applyDockPlacement();
+      syncDock();
+      saveState();
+      if (!settingsOverlay.hidden) renderSettings();
+    }
+    document.getElementById("dragHandle").addEventListener("pointerup", finishDrag);
+    document.getElementById("dragHandle").addEventListener("pointercancel", finishDrag);
+    window.addEventListener("resize", () => { syncDock(); placePopover(); });
+    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (state.theme === "system") { updateTheme(); if (!settingsOverlay.hidden) renderSettings(); } });
+    loadSavedState();
+    const previewQuery = new URLSearchParams(window.location.search);
+    const previewWidth = Number(previewQuery.get("width"));
+    const previewHeight = Number(previewQuery.get("height"));
+    const previewCornerRadius = Number(previewQuery.get("corner"));
+    const previewModules = previewQuery.get("modules");
+    if (previewModules) {
+      const requestedModules = previewModules.split(",").filter((id) => MODULES[id]);
+      if (requestedModules.length) state.order = Array.from(new Set(requestedModules));
+    }
+    if (Number.isFinite(previewWidth) && previewWidth > 0) { state.width = Math.max(180, Math.min(720, previewWidth)); state.sizePreset = "custom"; }
+    if (Number.isFinite(previewHeight) && previewHeight > 0) { state.height = Math.max(60, Math.min(240, previewHeight)); state.sizePreset = "custom"; }
+    if (previewQuery.has("corner") && Number.isFinite(previewCornerRadius)) state.cornerRadius = Math.max(0, Math.min(52, previewCornerRadius));
+    const edgePreset = previewQuery.get("edge");
+    if (["top", "right", "bottom", "left"].includes(edgePreset)) state.edge = edgePreset;
+    if (previewQuery.get("hidden") === "1") { state.hidden = true; state.visibility = "hidden"; }
+    const peekPreset = previewQuery.get("peek");
+    if (["start", "end"].includes(peekPreset)) dockRoot.dataset.previewPeek = peekPreset;
+    updateTheme();
+    renderDock();
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      dockRoot.classList.remove("is-initializing");
+      document.documentElement.classList.remove("is-initializing");
+    }));
+    const settingsPreset = previewQuery.get("settings");
+    const hoverPreset = previewQuery.get("hover");
+    if (["modules", "services", "appearance", "behavior", "general"].includes(settingsPreset)) {
+      state.activeTab = settingsPreset;
+      settingsOverlay.hidden = false;
+      renderSettings();
+    } else if (MODULES[hoverPreset] && state.order.includes(hoverPreset)) {
+      window.requestAnimationFrame(() => showPopover(hoverPreset, false));
+    }
+    if (previewQuery.get("drag") === "1") {
+      document.getElementById("edgeTargets").classList.add("is-visible");
+      setActiveDropEdge(previewQuery.get("target") || "right");
+      dockRoot.classList.add("is-dragging");
+    }
+  </script>
+</body>
+</html>

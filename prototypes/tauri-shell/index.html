@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Widget Platform G1-B</title>
+  </head>
+  <body>
+    <main class="shell" aria-label="Widget Platform prototype">
+      <div class="summary-row">
+        <span class="summary-mark" aria-hidden="true"></span>
+        <span class="summary-copy">
+          <span class="summary-label">SYSTEM SAMPLE</span>
+          <span class="summary-value">Ready · 23%</span>
+        </span>
+        <button id="open-panel" class="summary-action" type="button" aria-expanded="false" aria-controls="panel">
+          Open
+        </button>
+      </div>
+
+      <section id="panel" class="panel" aria-label="Input panel" hidden>
+        <div class="panel-heading">
+          <label for="draft">Quick note</label>
+          <button id="close-panel" class="close-action" type="button" aria-label="Close input panel">×</button>
+        </div>
+        <label class="field-label" for="monitor-select">Display</label>
+        <select id="monitor-select" class="monitor-select" aria-label="Display"></select>
+        <label class="field-label ratio-label" for="edge-ratio">Along edge <span id="ratio-value">50%</span></label>
+        <input id="edge-ratio" class="ratio-slider" type="range" min="0" max="100" value="50" />
+        <div class="edge-picker" role="group" aria-label="Dock edge">
+          <button type="button" class="edge-action" data-edge="top" aria-pressed="true">Top</button>
+          <button type="button" class="edge-action" data-edge="right" aria-pressed="false">Right</button>
+          <button type="button" class="edge-action" data-edge="bottom" aria-pressed="false">Bottom</button>
+          <button type="button" class="edge-action" data-edge="left" aria-pressed="false">Left</button>
+        </div>
+        <input id="draft" type="text" autocomplete="off" spellcheck="false" placeholder="Type a temporary note" />
+        <p id="location-status" class="panel-hint" role="status" aria-live="polite">Position follows the selected display work area.</p>
+        <p class="panel-hint">Tab moves between controls. Esc closes this panel and keeps the draft.</p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

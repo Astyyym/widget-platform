@@ -1,0 +1,22 @@
+.timer-panel { display: grid; gap: 14px; }
+.timer-panel header { margin-bottom: 2px; }
+.timer-phase-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.timer-phase-switch button, .timer-actions button { min-height: 38px; padding: 0 11px; border: 1px solid var(--shell-line); border-radius: 10px; color: var(--shell-text); background: var(--shell-surface-raised); font: inherit; font-size: 12px; }
+.timer-phase-switch button.is-selected { border-color: var(--shell-accent); color: var(--shell-dock-active-text); background: var(--shell-accent-soft); }
+.timer-phase-switch button:disabled, .timer-actions button:disabled { cursor: default; opacity: 0.45; }
+.timer-display { display: grid; min-height: 104px; place-items: center; border: 1px solid var(--shell-line); border-radius: 16px; color: var(--shell-text); background: var(--shell-surface-raised); font-variant-numeric: tabular-nums; font-size: 42px; font-weight: 700; letter-spacing: 0; }
+.timer-display.timer-state-completed { color: #159a73; }
+.timer-status { margin: 0; color: var(--shell-muted); font-size: 12px; text-align: center; }
+.timer-duration { display: grid; grid-template-columns: minmax(0, 1fr) 110px; align-items: center; gap: 10px; color: var(--shell-muted); font-size: 12px; }
+.timer-duration input { min-height: 36px; min-width: 0; padding: 0 9px; border: 1px solid var(--shell-line); border-radius: 9px; color: var(--shell-text); background: var(--shell-surface-raised); font: inherit; }
+.timer-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.progress-bar { display: block; height: 7px; overflow: hidden; border-radius: 99px; background: var(--shell-line); }
+.progress-bar span { display: block; height: 100%; border-radius: inherit; background: var(--shell-accent); transition: width .2s ease; }
+.timer-actions button:first-child { color: var(--shell-dock-active-text); background: var(--shell-accent-soft); }
+.timer-panel-copy, .timer-warning, .timer-completion { margin: 0; color: var(--shell-muted); font-size: 12px; line-height: 1.55; }
+.timer-warning, .timer-error { margin: 0; padding: 8px 10px; border: 1px solid #d7ab62; border-radius: 9px; color: #684510; background: #fff7df; font-size: 11px; line-height: 1.45; }
+.timer-error { border-color: #d78a80; color: #6d211c; background: #fff1ef; }
+.timer-panel-footer { display: flex; align-items: center; gap: 8px; color: var(--shell-soft-text); font-size: 11px; }
+.timer-panel-footer span { width: 6px; height: 6px; border-radius: 50%; background: var(--shell-accent); }
+@media (max-width: 420px) { .timer-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); } .timer-display { font-size: 36px; } }
+@media (prefers-color-scheme: dark) { .timer-warning { border-color: #8e7138; color: #ffe7ad; background: #40351d; } .timer-error { border-color: #8e4e48; color: #ffe2dd; background: #452522; } }

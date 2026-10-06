@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": false,
+    "resources": {
+      "release-notices/payload/": "notices/",
+      "../assets/LOCAL-CANDIDATE-README.txt": "LOCAL-CANDIDATE-README.txt"
+    },
+    "shortDescription": "Local Windows desktop widgets — test candidate",
+    "windows": {
+      "webviewInstallMode": {"type": "skip"},
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["SimpChinese", "English"],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico"
+      }
+    }
+  }
+}

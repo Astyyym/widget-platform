@@ -1,0 +1,1044 @@
+:root {
+  --shell-page: #f5f6f7;
+  --shell-stage: #e9ecee;
+  --shell-surface: #ffffff;
+  --shell-surface-raised: #f5f7f8;
+  --shell-surface-muted: #edf0f2;
+  --shell-line: #dce1e4;
+  --shell-text: #1b2025;
+  --shell-muted: #737d86;
+  --shell-soft-text: #9aa3aa;
+  --shell-accent: #32b9ec;
+  --shell-accent-soft: #e4f7fd;
+  --shell-dock: #fbfcfd;
+  --shell-dock-inner: #eef1f3;
+  --shell-dock-line: #d9dfe3;
+  --shell-dock-text: #20262b;
+  --shell-dock-active-text: #08232d;
+  --shell-dock-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  --shell-stage-wall:
+    radial-gradient(ellipse at 30% 42%, rgba(179, 216, 218, 0.58), transparent 44%),
+    radial-gradient(ellipse at 76% 62%, rgba(233, 205, 174, 0.48), transparent 40%),
+    linear-gradient(135deg, #eff1ef, #e2e7e8 56%, #f2eee8);
+  color-scheme: light;
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shell-page: #171a1e;
+    --shell-stage: #101418;
+    --shell-surface: #23272c;
+    --shell-surface-raised: #2b3036;
+    --shell-surface-muted: #343a41;
+    --shell-line: #40474e;
+    --shell-text: #f1f3f4;
+    --shell-muted: #a4adb5;
+    --shell-soft-text: #7f8991;
+    --shell-accent: #48c3ef;
+    --shell-accent-soft: #183e4d;
+    --shell-dock: #080a0c;
+    --shell-dock-inner: #202428;
+    --shell-dock-line: #353b40;
+    --shell-dock-text: #f5f7f8;
+    --shell-dock-active-text: #f4fbff;
+    --shell-dock-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+    --shell-stage-wall:
+      radial-gradient(ellipse at 31% 42%, rgba(46, 98, 104, 0.34), transparent 45%),
+      radial-gradient(ellipse at 76% 61%, rgba(120, 77, 48, 0.25), transparent 41%),
+      linear-gradient(135deg, #171e23, #20272b 56%, #171c20);
+    color-scheme: dark;
+  }
+}
+
+.shell-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100vh;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 24px;
+  color: var(--shell-text);
+  background: var(--shell-stage-wall);
+  box-shadow: 0 14px 44px rgba(22, 35, 42, 0.09);
+}
+
+.shell-stage-widget {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.shell-stage-widget::before {
+  display: none;
+}
+
+.shell-stage-widget .shell-dock {
+  transition: none;
+}
+
+.shell-stage::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(115deg, transparent 43%, rgba(255, 255, 255, 0.12) 44%, transparent 45%),
+    radial-gradient(ellipse at 52% 110%, rgba(255, 255, 255, 0.24), transparent 46%);
+  pointer-events: none;
+}
+
+.shell-stage-label {
+  position: absolute;
+  top: 28px;
+  left: 30px;
+  display: grid;
+  gap: 5px;
+  color: var(--shell-muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.shell-stage-label strong {
+  color: var(--shell-text);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.shell-stage-label span {
+  max-width: 12em;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.shell-edge-targets {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.shell-edge-targets.is-visible {
+  display: block;
+}
+
+.shell-edge-target {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 2px dashed color-mix(in srgb, var(--shell-accent) 76%, white);
+  border-radius: 18px;
+  color: var(--shell-text);
+  background: color-mix(in srgb, var(--shell-surface) 46%, transparent);
+  opacity: 0.62;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: opacity 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shell-edge-target[data-edge="top"] {
+  top: 2px;
+  left: 50%;
+  width: min(390px, 48%);
+  height: 112px;
+  transform: translateX(-50%);
+}
+
+.shell-edge-target[data-edge="bottom"] {
+  bottom: 43px;
+  left: 50%;
+  width: min(390px, 48%);
+  height: 112px;
+  transform: translateX(-50%);
+}
+
+.shell-edge-target[data-edge="left"] {
+  top: 50%;
+  left: 2px;
+  width: 112px;
+  height: min(390px, 52%);
+  transform: translateY(-50%);
+}
+
+.shell-edge-target[data-edge="right"] {
+  top: 50%;
+  right: 2px;
+  width: 112px;
+  height: min(390px, 52%);
+  transform: translateY(-50%);
+}
+
+.shell-edge-target.is-active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--shell-accent-soft) 78%, transparent);
+  box-shadow: 0 0 0 5px rgba(49, 184, 236, 0.13);
+}
+
+.shell-dock {
+  --shell-long-side: 260px;
+  --shell-thickness: 80px;
+  --shell-hit-size: 50px;
+  --shell-icon-size: 46px;
+  --shell-items-per-line: 3;
+  --shell-line-count: 1;
+  --shell-edge-position: 50%;
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: stretch;
+  color: var(--shell-dock-text);
+  transition: left 0.22s ease, top 0.22s ease, right 0.22s ease, bottom 0.22s ease;
+}
+
+.shell-dock[data-edge="top"] {
+  top: 0;
+  left: var(--shell-edge-position);
+  width: var(--shell-long-side);
+  height: var(--shell-thickness);
+  transform: translateX(-50%);
+}
+
+.shell-dock[data-edge="bottom"] {
+  bottom: 0;
+  left: var(--shell-edge-position);
+  width: var(--shell-long-side);
+  height: var(--shell-thickness);
+  transform: translateX(-50%);
+}
+
+.shell-dock[data-edge="left"] {
+  top: var(--shell-edge-position);
+  left: 0;
+  width: var(--shell-thickness);
+  height: var(--shell-long-side);
+  transform: translateY(-50%);
+}
+
+.shell-dock[data-edge="right"] {
+  top: var(--shell-edge-position);
+  right: 0;
+  width: var(--shell-thickness);
+  height: var(--shell-long-side);
+  transform: translateY(-50%);
+}
+
+.shell-dock-surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--shell-dock-line);
+  border-radius: 24px;
+  color: var(--shell-dock-text);
+  background: color-mix(in srgb, var(--shell-dock) var(--shell-dock-opacity, 100%), transparent);
+  box-shadow: var(--shell-dock-shadow);
+}
+
+.shell-dock[data-material="glass"] .shell-dock-surface {
+  -webkit-backdrop-filter: blur(var(--shell-dock-blur, 16px)) saturate(135%);
+  backdrop-filter: blur(var(--shell-dock-blur, 16px)) saturate(135%);
+  background: color-mix(in srgb, var(--shell-dock) var(--shell-dock-opacity, 76%), transparent);
+}
+
+.shell-dock[data-material="glass"] .shell-dock-surface::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 42%);
+  content: "";
+  pointer-events: none;
+}
+
+.shell-dock-surface > .shell-module-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.shell-module-grid {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(var(--shell-items-per-line), var(--shell-hit-size));
+  grid-template-rows: repeat(var(--shell-line-count), var(--shell-hit-size));
+  align-content: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--shell-grid-padding, 8px);
+}
+
+.shell-dock[data-edge="left"] .shell-module-grid,
+.shell-dock[data-edge="right"] .shell-module-grid {
+  grid-auto-flow: column;
+  grid-template-columns: repeat(var(--shell-line-count), var(--shell-hit-size));
+  grid-template-rows: repeat(var(--shell-items-per-line), var(--shell-hit-size));
+}
+
+.shell-dock[data-edge="top"] .shell-module-grid,
+.shell-dock[data-edge="bottom"] .shell-module-grid {
+  padding-right: var(--shell-grid-padding, 8px);
+}
+.shell-dock[data-edge="left"] .shell-module-grid,
+.shell-dock[data-edge="right"] .shell-module-grid {
+  padding-bottom: var(--shell-grid-padding, 8px);
+}
+.shell-module-hit-area {
+  display: grid;
+  place-items: center;
+  width: var(--shell-hit-size);
+  height: var(--shell-hit-size);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  color: var(--shell-dock-text);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shell-module-hit-area:focus-visible {
+  outline: 2px solid var(--shell-accent);
+  outline-offset: -2px;
+}
+
+.shell-module-orbit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: var(--shell-icon-size);
+  height: var(--shell-icon-size);
+  border: 1px solid var(--shell-dock-line);
+  border-radius: 50%;
+  background: var(--shell-dock-inner);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.025);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.shell-module-orbit::before {
+  position: absolute;
+  z-index: 0;
+  inset: 2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--shell-accent) var(--shell-ring-progress, 0%),
+    color-mix(in srgb, var(--shell-dock-line) 56%, transparent) 0
+  );
+  content: "";
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.shell-module-orbit[data-has-progress="true"]::before,
+.shell-dock[data-ring-mode="inner"] .shell-module-orbit::before {
+  opacity: 0.95;
+}
+
+.shell-dock[data-ring-mode="outer"] .shell-module-orbit::before {
+  inset: -2px;
+  opacity: 0.88;
+}
+
+.shell-module-orbit::after {
+  position: absolute;
+  inset: -4px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  content: "";
+}
+
+.shell-dock[data-ring-mode="outer"] .shell-module-orbit::after {
+  inset: -6px;
+  border-color: color-mix(in srgb, var(--shell-accent) 58%, transparent);
+}
+
+.shell-module-hit-area:hover .shell-module-orbit,
+.shell-module-hit-area:focus-visible .shell-module-orbit {
+  border-color: var(--shell-accent);
+  background: color-mix(in srgb, var(--shell-dock-inner) 76%, var(--shell-accent));
+  box-shadow: 0 0 0 5px rgba(72, 195, 239, 0.12), 0 5px 20px rgba(49, 184, 236, 0.13);
+}
+
+.shell-module-hit-area:hover .shell-module-orbit::after,
+.shell-module-hit-area:focus-visible .shell-module-orbit::after {
+  border-color: var(--shell-accent);
+  transform: rotate(-27deg);
+}
+
+.shell-symbol {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 68%;
+  height: 68%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  color: var(--shell-dock-text);
+  font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+  font-size: clamp(15px, calc(var(--shell-icon-size) * 0.46), 22px);
+  line-height: 1;
+}
+
+.local-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask-image: var(--local-icon-source);
+  mask-image: var(--local-icon-source);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.shell-symbol-icon {
+  width: 68%;
+  height: 68%;
+  background-color: currentColor;
+}
+
+.shell-symbol-wordmark {
+  font-family: "Segoe UI", sans-serif;
+  font-size: clamp(9px, calc(var(--shell-icon-size) * 0.25), 12px);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+}
+
+.shell-popover .progress-bar {
+  margin: 8px 0 6px;
+}
+
+.shell-symbol-readout {
+  font-family: "Segoe UI", sans-serif;
+  font-size: clamp(8px, calc(var(--shell-icon-size) * 0.22), 11px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.shell-control {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--shell-dock-text);
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.shell-control-start {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.shell-control-end {
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+  touch-action: auto;
+}
+
+.shell-control-strip {
+  position: absolute;
+  width: var(--shell-strip-thickness, 5px);
+  height: var(--shell-strip-length, 23px);
+  border-radius: 99px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(10, 18, 24, 0.24);
+  opacity: 0.78;
+  transition: opacity 0.15s ease, transform 0.18s ease;
+}
+
+.shell-collapse-toggle {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 34px;
+  height: 28px;
+  min-height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  color: var(--shell-dock-active-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.shell-collapse-toggle span {
+  width: 0;
+  height: 0;
+  border-right: 6px solid transparent;
+  border-left: 6px solid transparent;
+  border-bottom: 7px solid currentColor;
+}
+
+.shell-collapse-toggle:hover,
+.shell-collapse-toggle:focus-visible {
+  background: color-mix(in srgb, var(--shell-accent-soft) 80%, transparent);
+}
+
+.shell-dock[data-edge="top"] .shell-collapse-toggle {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.shell-dock[data-edge="bottom"] .shell-collapse-toggle {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+.shell-dock[data-edge="left"] .shell-collapse-toggle {
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+.shell-dock[data-edge="right"] .shell-collapse-toggle {
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.shell-control-grip,
+.shell-control-gear {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--shell-dock-active-text);
+  background: var(--shell-accent);
+  opacity: 0;
+  transform: scale(0.78);
+  transition: opacity 0.16s ease, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.shell-control-grip {
+  font-size: 20px;
+}
+
+.shell-control-gear {
+  font-family: "Segoe UI Symbol", sans-serif;
+  font-size: 21px;
+}
+
+.shell-control-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.shell-control:hover .shell-control-strip,
+.shell-control:focus-visible .shell-control-strip {
+  opacity: 0.28;
+  transform: scale(0.85);
+}
+
+.shell-control:hover .shell-control-grip,
+.shell-control:focus-visible .shell-control-grip,
+.shell-control:hover .shell-control-gear,
+.shell-control:focus-visible .shell-control-gear {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.shell-control:focus-visible {
+  outline: 2px solid var(--shell-accent);
+  outline-offset: 1px;
+}
+
+.shell-dock[data-edge="left"] .shell-control-start,
+.shell-dock[data-edge="right"] .shell-control-start {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.shell-dock[data-edge="left"] .shell-control-end,
+.shell-dock[data-edge="right"] .shell-control-end {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.shell-dock[data-edge="left"] .shell-control-strip,
+.shell-dock[data-edge="right"] .shell-control-strip {
+  width: var(--shell-strip-length, 23px);
+  height: var(--shell-strip-thickness, 5px);
+}
+
+.shell-dock.is-dragging {
+  top: var(--shell-drag-top);
+  right: auto;
+  bottom: auto;
+  left: var(--shell-drag-left);
+  z-index: 12;
+  transform: none;
+  transition: none;
+  cursor: grabbing;
+}
+
+.shell-dock.is-dragging[data-edge="left"],
+.shell-dock.is-dragging[data-edge="right"] {
+  width: var(--shell-thickness);
+  height: var(--shell-long-side);
+}
+
+.shell-dock.is-dragging[data-edge="top"],
+.shell-dock.is-dragging[data-edge="bottom"] {
+  width: var(--shell-long-side);
+  height: var(--shell-thickness);
+}
+
+.shell-dock.is-dragging .shell-control-start {
+  cursor: grabbing;
+}
+
+.shell-control-grip,
+.shell-control-gear {
+  user-select: none;
+}
+
+.shell-restore-strip {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shell-restore-strip span {
+  display: block;
+  width: var(--shell-strip-length, 23px);
+  height: var(--shell-strip-thickness, 5px);
+  border-radius: 99px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(10, 18, 24, 0.24);
+  transition: width 0.15s ease, height 0.15s ease;
+}
+
+.shell-restore-strip.edge-left span,
+.shell-restore-strip.edge-right span {
+  width: var(--shell-strip-thickness, 5px);
+  height: var(--shell-strip-length, 23px);
+}
+
+.shell-restore-strip:hover span,
+.shell-restore-strip:focus-visible span {
+  width: 36px;
+  height: 11px;
+}
+
+.shell-restore-strip.edge-top {
+  top: 0;
+  left: var(--shell-edge-position);
+  transform: translateX(-50%);
+}
+
+.shell-restore-strip.edge-bottom {
+  bottom: 0;
+  left: var(--shell-edge-position);
+  transform: translateX(-50%);
+}
+
+.shell-restore-strip.edge-left {
+  top: var(--shell-edge-position);
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.shell-restore-strip.edge-right {
+  top: var(--shell-edge-position);
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.shell-restore-strip:focus-visible {
+  outline: 2px solid var(--shell-accent);
+}
+
+.shell-restore-strip.edge-left:hover span,
+.shell-restore-strip.edge-left:focus-visible span,
+.shell-restore-strip.edge-right:hover span,
+.shell-restore-strip.edge-right:focus-visible span {
+  width: 11px;
+  height: 36px;
+}
+
+.shell-popover,
+.shell-activity-panel,
+.shell-settings-panel {
+  position: absolute;
+  z-index: 9;
+  border: 1px solid var(--shell-line);
+  border-radius: 20px;
+  color: var(--shell-text);
+  background: color-mix(in srgb, var(--shell-surface) 94%, transparent);
+  box-shadow: 0 18px 48px rgba(19, 31, 38, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.shell-popover {
+  width: min(286px, calc(100% - 24px));
+  min-height: 92px;
+  padding: 15px 18px;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+
+.shell-popover strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.shell-popover p,
+.shell-popover span {
+  display: block;
+  color: var(--shell-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.shell-popover span {
+  margin-top: 5px;
+  color: var(--shell-soft-text);
+  font-size: 11px;
+}
+
+/* Module-specific popover body: reset the generic span/p rules above so cards
+   control their own typography. */
+.shell-popover-content {
+  margin: 0 0 6px;
+}
+
+.shell-popover-content span,
+.shell-popover-content p,
+.shell-popover-content strong {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.shell-activity-panel,
+.shell-settings-panel {
+  width: min(380px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 22px;
+  overscroll-behavior: contain;
+}
+
+.shell-activity-panel.edge-top {
+  top: calc(var(--shell-thickness, 80px) + var(--shell-panel-gap, 18px));
+  max-height: calc(100% - var(--shell-thickness, 80px) - var(--shell-panel-gap, 18px) - var(--shell-panel-inset, 18px));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.shell-activity-panel.edge-bottom {
+  bottom: calc(var(--shell-thickness, 80px) + var(--shell-panel-gap, 18px));
+  max-height: calc(100% - var(--shell-thickness, 80px) - var(--shell-panel-gap, 18px) - var(--shell-panel-inset, 18px));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.shell-activity-panel.edge-left {
+  top: 50%;
+  left: calc(var(--shell-thickness, 80px) + var(--shell-panel-gap, 18px));
+  transform: translateY(-50%);
+}
+
+.shell-activity-panel.edge-right {
+  top: 50%;
+  right: calc(var(--shell-thickness, 80px) + var(--shell-panel-gap, 18px));
+  transform: translateY(-50%);
+}
+
+.shell-settings-panel {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.shell-stage-widget .shell-settings-panel.edge-top {
+  top: calc(var(--shell-thickness, 80px) + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.shell-stage-widget .shell-settings-panel.edge-bottom {
+  top: auto;
+  bottom: calc(var(--shell-thickness, 80px) + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.shell-stage-widget .shell-settings-panel.edge-left {
+  top: 50%;
+  right: calc(var(--shell-thickness, 80px) + 18px);
+  left: auto;
+  transform: translateY(-50%);
+}
+
+.shell-stage-widget .shell-settings-panel.edge-right {
+  top: 50%;
+  right: auto;
+  left: calc(var(--shell-thickness, 80px) + 18px);
+  transform: translateY(-50%);
+}
+
+.shell-settings-panel.settings-window {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+.shell-settings-save-alert {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  top: 6px;
+  left: 50%;
+  width: min(92%, 560px);
+  padding: 8px 12px;
+  border: 1px solid #d78a80;
+  border-radius: 10px;
+  color: #6d211c;
+  background: #fff1ef;
+  box-shadow: 0 4px 14px rgba(28, 16, 14, 0.15);
+  font-size: 11px;
+  line-height: 1.45;
+  transform: translateX(-50%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell-settings-save-alert {
+    border-color: #8e4e48;
+    color: #ffe2dd;
+    background: #452522;
+  }
+}
+
+.shell-activity-panel header,
+.shell-settings-panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.shell-activity-panel header span:not(.local-icon),
+.shell-settings-panel header span:not(.local-icon) {
+  color: var(--shell-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.shell-activity-panel h1,
+.shell-settings-panel h1 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.shell-panel-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid var(--shell-line);
+  border-radius: 50%;
+  color: var(--shell-text);
+  background: var(--shell-surface-raised);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.shell-panel-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.shell-activity-panel > p,
+.shell-settings-panel > p {
+  color: var(--shell-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.metrics-panel-primary {
+  color: var(--shell-text) !important;
+  font-size: 24px !important;
+  font-weight: 700;
+  line-height: 1.25 !important;
+}
+
+.metrics-panel-gpu-details {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.metrics-panel-gpu-details p {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.metrics-panel-gpu-details p:first-child {
+  color: var(--shell-text);
+  font-weight: 600;
+}
+
+.shell-activity-panel footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  color: var(--shell-soft-text);
+  font-size: 11px;
+}
+
+.shell-activity-panel footer span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--shell-accent);
+}
+
+.shell-settings-panel fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.shell-settings-panel legend {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.shell-edge-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.shell-edge-options button,
+.shell-hide-action {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--shell-line);
+  border-radius: 10px;
+  color: var(--shell-text);
+  background: var(--shell-surface-raised);
+  font-size: 12px;
+}
+
+.shell-edge-options button.is-selected {
+  border-color: var(--shell-accent);
+  color: var(--shell-dock-active-text);
+  background: var(--shell-accent-soft);
+}
+
+.shell-settings-panel > p {
+  margin-top: 16px;
+}
+
+.shell-hide-action {
+  width: 100%;
+  margin-top: 16px;
+  color: var(--shell-dock-active-text);
+  background: var(--shell-accent-soft);
+}
+
+@media (max-width: 720px) {
+  .shell-stage {
+    border-radius: 17px;
+  }
+
+  .shell-edge-target[data-edge="top"],
+  .shell-edge-target[data-edge="bottom"] {
+    width: min(82%, 360px);
+    height: 100px;
+  }
+
+  .shell-edge-target[data-edge="left"],
+  .shell-edge-target[data-edge="right"] {
+    width: 82px;
+    height: min(58%, 340px);
+  }
+
+  .shell-edge-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-stage *,
+  .shell-stage *::before,
+  .shell-stage *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "quality": "fresh",
+  "snapshot": {
+    "schemaVersion": 1,
+    "source": "Open-Meteo",
+    "location": {
+      "name": "测试城市",
+      "latitude": 30.2741,
+      "longitude": 120.1551,
+      "timezone": "Asia/Shanghai",
+      "temperatureUnit": "celsius"
+    },
+    "providerTimezone": "Asia/Shanghai",
+    "observedAtMs": 1790557200000,
+    "current": {
+      "temperature": 22.4,
+      "weatherCode": 1
+    },
+    "daily": {
+      "highTemperature": 26.1,
+      "lowTemperature": 17.8,
+      "weatherCode": 2
+    },
+    "hourly": [
+      { "atMs": 1790557200000, "temperature": 22.4, "weatherCode": 1 },
+      { "atMs": 1790560800000, "temperature": 23.1, "weatherCode": 2 },
+      { "atMs": 1790564400000, "temperature": 23.8, "weatherCode": 3 }
+    ]
+  },
+  "failureReason": null,
+  "retryAfterMs": 1800000,
+  "lastAttemptAtMs": 1790557200000
+}

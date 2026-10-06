@@ -1,0 +1,100 @@
+:root {
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  color: #19242f;
+  background: #f3f6f9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html.widget-host,
+html.widget-host body,
+html.widget-host #root {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 16px;
+  color: #fff;
+  background: #245c70;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #62bed0;
+  outline-offset: 3px;
+}
+
+.shell-frame {
+  display: grid;
+  gap: 28px;
+  width: min(100% - 48px, 760px);
+  margin: 48px auto;
+}
+
+.shell-header {
+  display: grid;
+  gap: 8px;
+}
+
+.shell-eyebrow {
+  margin: 0;
+  color: #53717e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+.shell-card {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  border: 1px solid #d8e1e7;
+  border-radius: 18px;
+  padding: 28px;
+  background: #fff;
+}
+
+.shell-card p {
+  color: #52616b;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

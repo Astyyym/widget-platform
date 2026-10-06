@@ -1,0 +1,43 @@
+{
+  "rateLimits": {
+    "limitId": "codex",
+    "limitName": "Codex",
+    "primary": {
+      "usedPercent": 35,
+      "windowDurationMins": 300,
+      "resetsAt": 1800000000
+    },
+    "secondary": {
+      "usedPercent": 72,
+      "windowDurationMins": 10080,
+      "resetsAt": 1800060000
+    }
+  },
+  "rateLimitsByLimitId": {
+    "codex": {
+      "limitId": "codex",
+      "limitName": "Codex",
+      "primary": {
+        "usedPercent": 35,
+        "windowDurationMins": 300,
+        "resetsAt": 1800000000
+      },
+      "secondary": {
+        "usedPercent": 72,
+        "windowDurationMins": 10080,
+        "resetsAt": 1800060000
+      }
+    },
+    "codex_extra": {
+      "limitId": "codex_extra",
+      "limitName": "Synthetic extra bucket",
+      "primary": {
+        "usedPercent": 12,
+        "windowDurationMins": 60,
+        "resetsAt": 1800003600
+      },
+      "secondary": null
+    }
+  },
+  "accountId": "synthetic-fixture-only"
+}

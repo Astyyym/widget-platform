@@ -1,0 +1,3 @@
+# Project-scoped Rustup/Cargo tools and their downloaded toolchains.
+.tools/
+.runtime-profile/

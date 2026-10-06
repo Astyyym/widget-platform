@@ -1,0 +1,245 @@
+.media-activity-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.media-session-picker {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 18px;
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.media-session-picker select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--shell-line);
+  border-radius: 12px;
+  color: var(--shell-text);
+  background: var(--shell-surface-raised);
+  font: inherit;
+}
+
+.media-status-message {
+  margin: 4px 0 12px;
+  color: var(--shell-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.media-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 12px 20px;
+  text-align: center;
+}
+
+.media-empty-state > span {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  color: var(--shell-accent);
+  background: var(--shell-surface-raised);
+  font-size: 28px;
+}
+
+.media-empty-state strong {
+  font-size: 14px;
+}
+
+.media-empty-state p {
+  max-width: 270px;
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.media-session-content {
+  display: grid;
+  gap: 20px;
+}
+
+.media-now-playing {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.media-artwork-frame {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  overflow: hidden;
+  border: 1px solid var(--shell-line);
+  border-radius: 16px;
+  background: var(--shell-surface-raised);
+}
+
+.media-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-artwork-placeholder {
+  color: var(--shell-accent);
+  font-size: 40px;
+}
+
+.media-track-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.media-track-copy strong,
+.media-track-copy span,
+.media-track-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-track-copy strong {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.media-track-copy span {
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.media-track-copy small {
+  margin-top: 3px;
+  color: var(--shell-soft-text);
+  font-size: 10px;
+}
+
+.media-progress-section {
+  display: grid;
+  gap: 8px;
+}
+
+.media-progress-section .media-seek-range {
+  display: block;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--shell-accent);
+  cursor: pointer;
+}
+
+.media-progress-section .media-seek-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.media-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.media-control-button {
+  display: grid;
+  place-items: center;
+  min-width: 42px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--shell-line);
+  border-radius: 12px;
+  color: var(--shell-text);
+  background: var(--shell-surface-raised);
+  font: inherit;
+}
+
+.media-control-button:focus-visible,
+.media-progress-section .media-seek-range:focus-visible {
+  outline: 2px solid var(--shell-accent);
+  outline-offset: 2px;
+}
+
+.media-control-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.media-control-button:not(:disabled) {
+  cursor: pointer;
+}
+
+.media-control-button:not(:disabled):hover {
+  border-color: var(--shell-accent);
+}
+
+.media-control-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.media-progress-section .media-seek-range {
+  border: 0;
+}
+
+.media-progress-times {
+  display: flex;
+  justify-content: space-between;
+  color: var(--shell-soft-text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hover-popover media summary (display-only). */
+.media-preview {
+  display: grid;
+  gap: 4px;
+}
+
+.media-preview-empty {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.media-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.media-preview-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--shell-accent);
+}
+
+.media-preview-title {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-preview-artist,
+.media-preview-meta {
+  overflow: hidden;
+  color: var(--shell-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-preview-meta {
+  color: var(--shell-soft-text);
+  font-size: 10px;
+}

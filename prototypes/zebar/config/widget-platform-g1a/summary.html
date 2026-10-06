@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget Platform · 合成摘要</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./widget-api.js"></script>
+  </head>
+  <body data-mode="summary">
+    <main class="widget" aria-label="合成 CPU 摘要">
+      <header class="summary">
+        <div>
+          <p class="eyebrow">WIDGET PLATFORM · 合成样例</p>
+          <h1>CPU <span>23%</span></h1>
+        </div>
+        <button id="open-panel" type="button">展开输入</button>
+        <button id="hide-summary" class="secondary" type="button">隐藏摘要</button>
+      </header>
+      <p id="action-status" class="status" aria-live="polite"></p>
+    </main>
+  </body>
+</html>

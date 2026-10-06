@@ -1,0 +1,35 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "Widget Platform UI Preview": {
+      "versions": [
+        {
+          "path": "Widget Platform UI Preview.html",
+          "createdAt": "2026-09-23T23:46:39.463Z",
+          "status": "needs-review",
+          "subtitle": "统一圆角矩形；圆角、控制白条长度与透明度可调；多模块内容限制在卡片内",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "section": "UI Preview"
+        },
+        {
+          "path": "Widget Platform UI Preview v2.html",
+          "createdAt": "2026-09-24T04:59:56.140Z",
+          "status": "approved",
+          "subtitle": "评阅修订：四向共用卡片长边与厚度；独立指标、状态交互与安全换行",
+          "viewport": {
+            "width": 920,
+            "height": 897
+          },
+          "section": "UI Preview"
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-09-23T23:46:39.470Z",
+  "updatedAt": "2026-09-24T09:42:26.304Z"
+}

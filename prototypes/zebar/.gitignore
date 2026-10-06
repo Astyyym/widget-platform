@@ -1,0 +1,6 @@
+# Locally extracted official Zebar runtime and isolated per-run profile.
+.runtime/
+.runtime-profile/
+config/settings.json
+config/errors.log
+config/.marketplace/

@@ -1,0 +1,108 @@
+.codex-quota-status {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 3px solid var(--shell-accent);
+  border-radius: 8px;
+  color: var(--shell-text);
+  background: color-mix(in srgb, var(--shell-surface) 78%, transparent);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.codex-quota-status[data-quality="stale"] {
+  border-left-color: var(--shell-muted);
+}
+
+.codex-quota-status[data-quality="unavailable"] {
+  border-left-color: var(--shell-line);
+}
+
+.codex-quota-error,
+.codex-quota-empty {
+  margin: 9px 0 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.codex-quota-section {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.codex-quota-section h2 {
+  margin: 0;
+  color: var(--shell-soft-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.codex-quota-window-list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+
+.codex-quota-window {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--shell-line);
+}
+
+.codex-quota-window:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.codex-quota-window dt {
+  color: var(--shell-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.codex-quota-window dd {
+  margin: 0;
+  color: var(--shell-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.codex-quota-window dd span {
+  display: block;
+  margin-top: 4px;
+  color: var(--shell-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.codex-quota-window dd .progress-bar {
+  min-width: 120px;
+  margin-top: 7px;
+  text-align: left;
+}
+
+.codex-quota-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 16px;
+  color: var(--shell-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.codex-quota-footer > span {
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--shell-accent);
+}

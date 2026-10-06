@@ -1,0 +1,10 @@
+{
+  "rateLimits": {
+    "primary": {
+      "usedPercent": 81,
+      "windowDurationMins": 10080,
+      "resetsAt": 1800060000
+    },
+    "secondary": null
+  }
+}
